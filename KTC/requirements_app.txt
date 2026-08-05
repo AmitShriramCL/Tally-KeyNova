@@ -1,0 +1,7 @@
+# Dependencies for the KTC Connector tray application.
+# connector.py itself has zero dependencies (pure stdlib).
+# These are only needed to build the .exe.
+
+pystray>=0.19.5
+Pillow>=10.0.0
+pyinstaller>=6.0.0

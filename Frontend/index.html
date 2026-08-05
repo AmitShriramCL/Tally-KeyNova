@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KeyNova × Tally Integration</title>
+<style>
+  :root{
+    --navy:#16284f; --navy-2:#1e3a5f; --blue:#2563eb; --blue-dark:#1d4ed8;
+    --bg:#f4f6fb; --card:#ffffff; --line:#e3e8f0; --text:#1f2937; --muted:#6b7280;
+    --green:#16a34a; --red:#dc2626; --orange:#ea580c; --gray:#6b7280;
+    --rev:#e8f1ff;  --tax:#f1ecff;  --pay:#e8f7ee;  --city:#fff4e0;
+    --liab:#fdf2f8; --exp:#fffbeb;  --pout:#fef2f2;
+    --rev-b:#2563eb; --tax-b:#7c3aed; --pay-b:#16a34a; --city-b:#d97706;
+    --liab-b:#9333ea; --exp-b:#ca8a04; --pout-b:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+  header{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+  header .brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600}
+  header .brand .dot{width:10px;height:10px;border-radius:50%;background:#5b8def}
+  header .right{display:flex;align-items:center;gap:14px;font-size:13px}
+  .ghost-btn{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px}
+  .ghost-btn:hover{background:rgba(255,255,255,.12)}
+
+  .progress{display:flex;gap:8px;max-width:1100px;margin:20px auto 0;padding:0 16px}
+  .step{flex:1;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;cursor:pointer;transition:.15s}
+  .step .num{width:24px;height:24px;border-radius:50%;background:#e5e9f2;color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;flex:0 0 auto}
+  .step .label{font-weight:500;color:var(--muted)}
+  .step.active{border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+  .step.active .num{background:var(--blue);color:#fff}
+  .step.active .label{color:var(--navy)}
+  .step.done .num{background:var(--green);color:#fff}
+  .step.done .label{color:var(--text)}
+
+  main{max-width:1100px;margin:20px auto 60px;padding:0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:0 1px 3px rgba(16,40,80,.05)}
+  .card h2{margin:0 0 4px;font-size:20px;color:var(--navy)}
+  .card .sub{margin:0 0 20px;color:var(--muted)}
+
+  label{display:block;font-weight:600;margin:0 0 6px;font-size:13px;color:#374151}
+  .field{margin-bottom:16px}
+  input[type=text],input[type=password],input[type=number],input[type=date],select{
+    width:100%;padding:10px 12px;border:1px solid #cdd5e3;border-radius:8px;font-size:14px;background:#fff;color:var(--text)}
+  input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+  .btn{background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .btn:hover{background:var(--blue-dark)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.secondary{background:#fff;color:var(--navy);border:1px solid #cdd5e3}
+  .btn.secondary:hover{background:#f3f6fc}
+  .btn.sm{padding:7px 14px;font-size:13px}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px}
+
+  .error-msg{color:var(--red);font-weight:600;margin-top:10px;min-height:18px}
+  .conn-status{font-weight:600;margin-left:4px}
+  .conn-status.online{color:var(--green)}
+  .conn-status.offline{color:var(--red)}
+
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);font-size:13px}
+  th{background:#f7f9fd;color:#475569;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:#fafbfd}
+  tbody tr.t-revenue{background:var(--rev)} tbody tr.t-tax{background:var(--tax)}
+  tbody tr.t-payment{background:var(--pay)} tbody tr.t-city{background:var(--city)}
+  tbody tr.t-liab{background:var(--liab)} tbody tr.t-expense{background:var(--exp)} tbody tr.t-pout{background:var(--pout)}
+  .ent-id{font-size:11px;color:var(--muted)}
+  .arrow{color:var(--muted);text-align:center}
+  .ledger-input{min-width:180px}
+
+  .type-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;color:#fff}
+  .type-badge.t-revenue{background:var(--rev-b)} .type-badge.t-tax{background:var(--tax-b)}
+  .type-badge.t-payment{background:var(--pay-b)} .type-badge.t-city{background:var(--city-b)}
+  .type-badge.t-liab{background:var(--liab-b)} .type-badge.t-expense{background:var(--exp-b)} .type-badge.t-pout{background:var(--pout-b)}
+
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;color:#fff}
+  .b-pending{background:var(--gray)} .b-posted{background:var(--green)}
+  .b-error{background:var(--red)} .b-offline{background:var(--orange)}
+  .link-btn{background:none;border:none;color:var(--blue);cursor:pointer;font-size:12px;text-decoration:underline;padding:0 0 0 6px}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+  .toolbar .field{margin-bottom:0}
+  .grow{flex:1}
+  .muted-line{color:var(--muted);font-size:13px;margin:8px 0}
+  .summary-line{font-weight:600;color:var(--navy);font-size:13px}
+
+  .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;display:inline-block;animation:rot .7s linear infinite}
+  .btn.secondary .spin{border:2px solid rgba(30,58,95,.3);border-top-color:var(--navy)}
+  @keyframes rot{to{transform:rotate(360deg)}}
+
+  #toast{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:50}
+  .toast{padding:12px 16px;border-radius:8px;color:#fff;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.18);max-width:340px}
+  .toast.success{background:var(--green)} .toast.error{background:var(--red)} .toast.info{background:var(--navy-2)}
+
+  #modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+  #modal .box{background:#fff;border-radius:12px;max-width:800px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+  #modal .box header{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+  #modal .mhead{font-size:15px;font-weight:600;color:#fff}
+  #modal .body{padding:16px 20px;overflow:auto}
+  #modal h4{margin:14px 0 6px;color:var(--navy);font-size:13px}
+  pre{background:#0f172a;color:#d1e0ff;padding:12px;border-radius:8px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-word;max-height:260px}
+  .hide{display:none!important}
+
+  /* ---- Transaction screen sidebar layout ---- */
+  #screen-transactions{padding:0}
+  .txn-layout{display:flex;min-height:520px}
+  .txn-sidebar{width:168px;flex:0 0 168px;border-right:1px solid var(--line);padding:16px 0;background:#fbfcff;border-radius:12px 0 0 12px}
+  .sidebar-section{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.07em;padding:8px 16px 4px;text-transform:uppercase}
+  .sidebar-item{display:block;width:100%;text-align:left;padding:9px 16px;border:none;border-left:3px solid transparent;background:none;cursor:pointer;font-size:13.5px;color:var(--text);transition:.1s}
+  .sidebar-item:hover{background:#eef2ff;color:var(--blue)}
+  .sidebar-item.active{background:#e8f0ff;color:var(--blue);font-weight:600;border-left-color:var(--blue)}
+  .txn-main{flex:1;padding:20px 24px;min-width:0;overflow-x:auto}
+  .tab-header{margin-bottom:16px}
+  .tab-header h2{margin:0 0 2px;font-size:18px;color:var(--navy)}
+  .tab-header p{margin:0;color:var(--muted);font-size:13px}
+  .mode-pill{display:inline-block;background:#e0e7ff;color:#3730a3;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;margin-left:8px}
+
+  /* checkbox styling */
+  input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot"></span> KeyNova <span style="opacity:.6">×</span> Tally Integration</div>
+  <div class="right">
+    <span id="hotelBadge"></span>
+    <button id="logoutBtn" class="ghost-btn" style="display:none" onclick="doLogout()">Logout</button>
+  </div>
+</header>
+
+<div class="progress">
+  <div class="step active" onclick="goStep(0)"><span class="num">1</span><span class="label">Login</span></div>
+  <div class="step" onclick="goStep(1)"><span class="num">2</span><span class="label">Tally Config</span></div>
+  <div class="step" onclick="goStep(2)"><span class="num">3</span><span class="label">Ledger Mapping</span></div>
+  <div class="step" onclick="goStep(3)"><span class="num">4</span><span class="label">Transactions</span></div>
+</div>
+
+<main>
+
+<!-- ============ SCREEN 1: LOGIN ============ -->
+<section id="screen-login" class="card">
+  <h2>Sign in</h2>
+  <p class="sub">Connect to the KeyNova backend then sign in with your hotel credentials.</p>
+  <div class="field">
+    <label for="backendUrl">Backend URL</label>
+    <input type="text" id="backendUrl" placeholder="https://xxxx.ngrok-free.app  or  http://localhost:8000" />
+    <div class="hint">Paste the ngrok URL. For local testing use <code>http://localhost:8000</code>.</div>
+  </div>
+  <div class="field">
+    <label for="loginHotel">Hotel Code</label>
+    <input type="text" id="loginHotel" placeholder="KN001" />
+  </div>
+  <div class="row2">
+    <div class="field">
+      <label for="loginUser">Username</label>
+      <input type="text" id="loginUser" placeholder="admin" />
+    </div>
+    <div class="field">
+      <label for="loginPass">Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+  </div>
+  <div class="actions">
+    <button id="loginBtn" class="btn" onclick="doLogin()">Login</button>
+  </div>
+  <div id="loginError" class="error-msg"></div>
+  <div class="hint" style="margin-top:14px">Demo: hotel code <b>KN001</b> or <b>KN002</b>, username <b>admin</b>, password <b>admin123</b>.</div>
+</section>
+
+<!-- ============ SCREEN 2: TALLY CONFIG ============ -->
+<section id="screen-config" class="card" style="display:none">
+  <h2>Tally Connection &amp; Posting Options</h2>
+  <p class="sub">Configure how KeyNova connects to TallyPrime and how vouchers are generated.</p>
+
+  <div class="field">
+    <label for="cfgCompany">Tally Company Name</label>
+    <input type="text" id="cfgCompany" placeholder="Hotel Skyline" />
+    <div class="hint">Must match the company open in TallyPrime <b>exactly</b> (case and spaces).</div>
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label for="cfgMode">Tally Mode</label>
+      <select id="cfgMode" onchange="toggleModeFields()">
+        <option value="LOCAL_CONNECTOR">Local + KTC Connector</option>
+        <option value="DIRECT_URL">Direct URL (network Tally)</option>
+      </select>
+    </div>
+    <div class="field" id="cfgPortRow">
+      <label for="cfgPort">Connector Port</label>
+      <input type="number" id="cfgPort" value="9988" />
+    </div>
+    <div class="field hide" id="cfgUrlRow">
+      <label for="cfgTallyUrl">Tally Direct URL</label>
+      <input type="text" id="cfgTallyUrl" value="http://localhost:9000" />
+    </div>
+  </div>
+
+  <div class="row3">
+    <div class="field">
+      <label for="cfgRecording">Recording Mode</label>
+      <select id="cfgRecording">
+        <option value="DAY_WISE">Day-wise (Accrual)</option>
+        <option value="CHECKOUT_WISE">Checkout-wise (Invoice)</option>
+        <option value="SUMMARIZED">Summarized</option>
+      </select>
+      <div class="hint">Day-wise: one Sales JV per night. Checkout: one JV per stay. Summarized: one JV with all settlements.</div>
+    </div>
+    <div class="field">
+      <label for="cfgArMode">A/R Mode</label>
+      <select id="cfgArMode" onchange="toggleArFields()">
+        <option value="GUEST_NAME">Guest Name</option>
+        <option value="BUSINESS_SOURCE" selected>Business Source (City Ledger)</option>
+        <option value="SINGLE_LEDGER">Single Ledger</option>
+      </select>
+      <div class="hint">Who is the debtor in the Sales JV.</div>
+    </div>
+    <div class="field">
+      <label for="cfgPos">Place of Supply</label>
+      <input type="text" id="cfgPos" value="Gujarat" />
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="field hide" id="cfgArLedgerRow">
+      <label for="cfgArLedger">A/R Ledger Name</label>
+      <input type="text" id="cfgArLedger" placeholder="Account Receivable" />
+      <div class="hint">Used when A/R Mode is Single Ledger.</div>
+    </div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="cfgGroupTxn" style="width:16px;height:16px" />
+        <span>Group Transaction</span>
+      </label>
+      <div class="hint">In Sales JV, consolidate same-type revenue lines across nights into one line.</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="cfgSaveBtn" onclick="saveConfig(true)">Save &amp; Continue</button>
+    <button class="btn secondary" id="cfgTestBtn" onclick="testConnection()">Test Connection</button>
+    <span id="connStatus" class="conn-status"></span>
+  </div>
+</section>
+
+<!-- ============ SCREEN 3: LEDGER MAPPING ============ -->
+<section id="screen-mapping" class="card" style="display:none">
+  <h2>Ledger Mapping</h2>
+  <p class="sub">Map each KeyNova entity to its matching Tally ledger name. Leave blank to use the default name shown as placeholder.</p>
+  <table>
+    <thead>
+      <tr><th>KeyNova Entity</th><th>Type</th><th class="arrow">→</th><th>Tally Ledger Name</th></tr>
+    </thead>
+    <tbody id="mapBody"></tbody>
+  </table>
+  <div class="actions" style="margin-top:18px">
+    <button class="btn secondary" id="mapSaveBtn" onclick="saveMappings(false)">Save Mappings</button>
+    <button class="btn" id="mapContinueBtn" onclick="saveMappings(true)">Continue to Transactions</button>
+  </div>
+</section>
+
+<!-- ============ SCREEN 4: TRANSACTIONS ============ -->
+<section id="screen-transactions" class="card" style="display:none">
+  <div class="txn-layout">
+
+    <!-- Sidebar -->
+    <aside class="txn-sidebar">
+      <div class="sidebar-section">Room</div>
+      <button class="sidebar-item active" data-tab="sales"    onclick="switchTab('sales')">Sales</button>
+      <button class="sidebar-item"        data-tab="receipts" onclick="switchTab('receipts')">Receipt</button>
+      <button class="sidebar-item"        data-tab="payments" onclick="switchTab('payments')">Payment</button>
+      <button class="sidebar-item"        data-tab="journals" onclick="switchTab('journals')">Journal</button>
+      <div class="sidebar-section" style="margin-top:12px">POS</div>
+      <button class="sidebar-item"        data-tab="pos"      onclick="switchTab('pos')">POS Sales</button>
+    </aside>
+
+    <!-- Main content area — each tab is a separate div, shown/hidden -->
+    <div class="txn-main">
+
+      <!-- === SALES TAB === -->
+      <div id="tab-sales">
+        <div class="tab-header">
+          <h2>PMS Transactions — Sales <span id="sales-mode-pill" class="mode-pill">Day-wise</span></h2>
+          <p>Room folio charges exported as <b>Sales JV</b> to Tally.</p>
+        </div>
+        <div class="toolbar">
+          <div class="field"><label for="sales-from">From</label><input type="date" id="sales-from" /></div>
+          <div class="field"><label for="sales-to">To</label><input type="date" id="sales-to" /></div>
+          <button class="btn secondary sm" id="sales-fetchBtn" onclick="fetchSales()">Fetch</button>
+          <div class="grow"></div>
+          <button class="btn secondary sm" id="sales-previewBtn" onclick="previewSalesXml()" disabled>Preview XML</button>
+          <button class="btn sm" id="sales-exportBtn" onclick="exportSales()" disabled>Export to Tally</button>
+        </div>
+        <div class="muted-line" id="sales-found"></div>
+        <table>
+          <thead id="sales-thead"></thead>
+          <tbody id="sales-body">
+            <tr><td colspan="9" class="muted-line">Click <b>Fetch</b> to load transactions.</td></tr>
+          </tbody>
+        </table>
+        <div class="actions" style="margin-top:12px">
+          <span class="summary-line" id="sales-summary"></span>
+        </div>
+      </div>
+
+      <!-- === RECEIPT TAB === -->
+      <div id="tab-receipts" class="hide">
+        <div class="tab-header">
+          <h2>PMS Transactions — Receipt</h2>
+          <p>Cash / card / advance payments received from guests — exported as <b>Receipt JV</b> to Tally.</p>
+        </div>
+        <div class="toolbar">
+          <div class="field"><label for="rcpt-from">From</label><input type="date" id="rcpt-from" /></div>
+          <div class="field"><label for="rcpt-to">To</label><input type="date" id="rcpt-to" /></div>
+          <button class="btn secondary sm" id="rcpt-fetchBtn" onclick="fetchReceipts()">Fetch</button>
+          <div class="grow"></div>
+          <button class="btn secondary sm" id="rcpt-previewBtn" onclick="previewTab('receipts')" disabled>Preview XML</button>
+          <button class="btn sm" id="rcpt-exportBtn" onclick="exportTab('receipts')" disabled>Export to Tally</button>
+        </div>
+        <div class="muted-line" id="rcpt-found"></div>
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="rcpt-selectAll" onclick="toggleAll('rcpt')" checked /></th>
+              <th>Folio #</th><th>Guest</th><th>Date</th><th>Type</th><th>Method</th>
+              <th class="num">Amount ₹</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="rcpt-body">
+            <tr><td colspan="8" class="muted-line">Click <b>Fetch</b> to load receipts.</td></tr>
+          </tbody>
+        </table>
+        <div class="actions" style="margin-top:12px"><span class="summary-line" id="rcpt-summary"></span></div>
+      </div>
+
+      <!-- === PAYMENT TAB === -->
+      <div id="tab-payments" class="hide">
+        <div class="tab-header">
+          <h2>PMS Transactions — Payment</h2>
+          <p>Paid-out expenses (housekeeping, laundry, etc.) — exported as <b>Payment JV</b> to Tally.</p>
+        </div>
+        <div class="toolbar">
+          <div class="field"><label for="pmt-from">From</label><input type="date" id="pmt-from" /></div>
+          <div class="field"><label for="pmt-to">To</label><input type="date" id="pmt-to" /></div>
+          <button class="btn secondary sm" id="pmt-fetchBtn" onclick="fetchPayments()">Fetch</button>
+          <div class="grow"></div>
+          <button class="btn secondary sm" id="pmt-previewBtn" onclick="previewTab('payments')" disabled>Preview XML</button>
+          <button class="btn sm" id="pmt-exportBtn" onclick="exportTab('payments')" disabled>Export to Tally</button>
+        </div>
+        <div class="muted-line" id="pmt-found"></div>
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="pmt-selectAll" onclick="toggleAll('pmt')" checked /></th>
+              <th>ID</th><th>Description</th><th>Date</th><th>Expense</th><th>Method</th>
+              <th class="num">Amount ₹</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pmt-body">
+            <tr><td colspan="8" class="muted-line">Click <b>Fetch</b> to load payments.</td></tr>
+          </tbody>
+        </table>
+        <div class="actions" style="margin-top:12px"><span class="summary-line" id="pmt-summary"></span></div>
+      </div>
+
+      <!-- === JOURNAL TAB === -->
+      <div id="tab-journals" class="hide">
+        <div class="tab-header">
+          <h2>PMS Transactions — Journal</h2>
+          <p>Advance-to-AR transfers and city-ledger settlements — exported as <b>Journal JV</b> to Tally.</p>
+        </div>
+        <div class="toolbar">
+          <div class="field"><label for="jnl-from">From</label><input type="date" id="jnl-from" /></div>
+          <div class="field"><label for="jnl-to">To</label><input type="date" id="jnl-to" /></div>
+          <button class="btn secondary sm" id="jnl-fetchBtn" onclick="fetchJournals()">Fetch</button>
+          <div class="grow"></div>
+          <button class="btn secondary sm" id="jnl-previewBtn" onclick="previewTab('journals')" disabled>Preview XML</button>
+          <button class="btn sm" id="jnl-exportBtn" onclick="exportTab('journals')" disabled>Export to Tally</button>
+        </div>
+        <div class="muted-line" id="jnl-found"></div>
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="jnl-selectAll" onclick="toggleAll('jnl')" checked /></th>
+              <th>ID</th><th>Folio #</th><th>Guest</th><th>Date</th><th>Journal Type</th>
+              <th>DR Ledger</th><th>CR Ledger</th><th class="num">Amount ₹</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="jnl-body">
+            <tr><td colspan="10" class="muted-line">Click <b>Fetch</b> to load journal entries.</td></tr>
+          </tbody>
+        </table>
+        <div class="actions" style="margin-top:12px"><span class="summary-line" id="jnl-summary"></span></div>
+      </div>
+
+      <!-- === POS TAB === -->
+      <div id="tab-pos" class="hide">
+        <div class="tab-header">
+          <h2>POS Transactions — Sales</h2>
+          <p>Restaurant and bar bills — exported as <b>Sales JV</b> to Tally.</p>
+        </div>
+        <div class="toolbar">
+          <div class="field"><label for="pos-from">From</label><input type="date" id="pos-from" /></div>
+          <div class="field"><label for="pos-to">To</label><input type="date" id="pos-to" /></div>
+          <button class="btn secondary sm" id="pos-fetchBtn" onclick="fetchPOS()">Fetch</button>
+          <div class="grow"></div>
+          <button class="btn secondary sm" id="pos-previewBtn" onclick="previewTab('pos')" disabled>Preview XML</button>
+          <button class="btn sm" id="pos-exportBtn" onclick="exportTab('pos')" disabled>Export to Tally</button>
+        </div>
+        <div class="muted-line" id="pos-found"></div>
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="pos-selectAll" onclick="toggleAll('pos')" checked /></th>
+              <th>Bill #</th><th>Outlet</th><th>Guest</th><th>Date</th><th>Items</th>
+              <th>Tax</th><th class="num">Amount ₹</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pos-body">
+            <tr><td colspan="9" class="muted-line">Click <b>Fetch</b> to load POS bills.</td></tr>
+          </tbody>
+        </table>
+        <div class="actions" style="margin-top:12px"><span class="summary-line" id="pos-summary"></span></div>
+      </div>
+
+    </div><!-- .txn-main -->
+  </div><!-- .txn-layout -->
+</section>
+
+</main>
+
+<div id="toast"></div>
+
+<div id="modal" onclick="if(event.target.id==='modal')closeModal()">
+  <div class="box">
+    <header>
+      <div class="mhead" id="modalTitle"></div>
+      <button class="ghost-btn" onclick="closeModal()">Close</button>
+    </header>
+    <div class="body">
+      <h4>Request XML (sent to Tally)</h4>
+      <pre id="modalReq"></pre>
+      <h4>Response from Tally</h4>
+      <pre id="modalResp"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONSTANTS
+============================================================ */
+const KTI_TOKEN = "poc-token-123";
+const LS = { backend:"kti_backend_url", token:"kti_token", hotelName:"kti_hotel_name", hotelCode:"kti_hotel_code" };
+
+/* ============================================================
+   STATE
+============================================================ */
+const state = {
+  backendUrl: localStorage.getItem(LS.backend) || "",
+  token:      localStorage.getItem(LS.token) || "",
+  hotelName:  localStorage.getItem(LS.hotelName) || "",
+  hotelCode:  localStorage.getItem(LS.hotelCode) || "",
+  config: null,
+  entities: [],
+  mappings: {},
+  // Per-tab data
+  folios: [],      // fetched once for Sales tab
+  tabs: {
+    sales:    { records:[], results:{} },
+    receipts: { records:[], results:{} },
+    payments: { records:[], results:{} },
+    journals: { records:[], results:{} },
+    pos:      { records:[], results:{} },
+  },
+};
+
+/* ============================================================
+   UTILITY HELPERS
+============================================================ */
+const screens = ["login","config","mapping","transactions"];
+function normBackend(u){ return (u||"").trim().replace(/\/+$/,""); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function escAttr(s){ return esc(s).replace(/"/g,"&quot;"); }
+function money(n){ return Number(n||0).toFixed(2); }
+function toTallyDate(d){ return String(d||"").replaceAll("-",""); }
+function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+
+function showToast(msg, type="info"){
+  const el = document.createElement("div");
+  el.className = "toast "+type; el.textContent = msg;
+  document.getElementById("toast").appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+function setLoading(btn, on){
+  if(!btn) return;
+  if(on){ btn.dataset.label=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="spin"></span> Working…'; }
+  else  { btn.disabled=false; if(btn.dataset.label) btn.innerHTML=btn.dataset.label; }
+}
+
+async function api(path, {method="GET", body=null, auth=true}={}){
+  if(!state.backendUrl) throw new Error("Backend URL not set");
+  const headers={};
+  if(body) headers["Content-Type"]="application/json";
+  if(auth && state.token) headers["Authorization"]="Bearer "+state.token;
+  const res = await fetch(normBackend(state.backendUrl)+path, {method, headers, body:body?JSON.stringify(body):null});
+  const text = await res.text();
+  let data=null; try{ data=text?JSON.parse(text):null; }catch(e){ data=text; }
+  if(!res.ok){
+    const msg=(data&&data.detail)?data.detail:(typeof data==="string"?data:"HTTP "+res.status);
+    const err=new Error(msg); err.status=res.status; throw err;
+  }
+  return data;
+}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function showScreen(name){
+  screens.forEach(s=>document.getElementById("screen-"+s).style.display=(s===name)?"block":"none");
+  const idx=screens.indexOf(name);
+  document.querySelectorAll(".step").forEach((el,i)=>{
+    el.classList.toggle("active",i===idx);
+    el.classList.toggle("done",i<idx);
+  });
+  document.getElementById("hotelBadge").textContent = state.hotelName ? (state.hotelName+" · "+state.hotelCode) : "";
+  document.getElementById("logoutBtn").style.display = state.token ? "inline-block" : "none";
+}
+function goStep(i){
+  if(i>0 && !state.token){ showToast("Please log in first","error"); return; }
+  if(i===0) showScreen("login");
+  else if(i===1) enterConfig();
+  else if(i===2) enterMapping();
+  else if(i===3) enterTransactions();
+}
+function doLogout(){
+  state.token=state.hotelName=state.hotelCode=""; state.config=null;
+  state.entities=[]; state.mappings={}; state.folios=[];
+  Object.keys(state.tabs).forEach(t=>{ state.tabs[t]={records:[],results:{}}; });
+  localStorage.removeItem(LS.token); localStorage.removeItem(LS.hotelName); localStorage.removeItem(LS.hotelCode);
+  showScreen("login");
+}
+
+/* Fire-and-forget after login: loads mapping entities + saved mappings in the background
+   so Screens 3 and 4 render instantly when the user arrives there. */
+async function prefetchAll(){
+  try{
+    const [eR,mR] = await Promise.all([api("/mappings/entities"), api("/mappings")]);
+    if(!state.entities.length)               state.entities = eR.entities||[];
+    if(!Object.keys(state.mappings).length)  state.mappings = mR.mappings||{};
+  }catch(e){ /* silent — enterMapping() will retry if needed */ }
+}
+
+/* ============================================================
+   SCREEN 1 — LOGIN
+============================================================ */
+async function doLogin(){
+  state.backendUrl = normBackend(document.getElementById("backendUrl").value);
+  localStorage.setItem(LS.backend, state.backendUrl);
+  const hotel_code = document.getElementById("loginHotel").value.trim();
+  const username   = document.getElementById("loginUser").value.trim();
+  const password   = document.getElementById("loginPass").value;
+  const errEl = document.getElementById("loginError"); errEl.textContent="";
+  if(!state.backendUrl){ errEl.textContent="Please enter the Backend URL."; return; }
+
+  const btn = document.getElementById("loginBtn"); setLoading(btn, true);
+  try{
+    const d = await api("/auth/login",{method:"POST",auth:false,body:{hotel_code,username,password}});
+    state.token=d.token; state.hotelName=d.hotel_name; state.hotelCode=d.hotel_code;
+    localStorage.setItem(LS.token,state.token);
+    localStorage.setItem(LS.hotelName,state.hotelName);
+    localStorage.setItem(LS.hotelCode,state.hotelCode);
+    prefetchAll(); // fire-and-forget: warms mapping cache while user fills config
+    await enterConfig();
+  }catch(e){
+    errEl.textContent = (e.status===401) ? "Invalid credentials" : ("Login failed: "+e.message);
+  }finally{ setLoading(btn,false); }
+}
+
+/* ============================================================
+   SCREEN 2 — CONFIG
+============================================================ */
+function toggleModeFields(){
+  const m = document.getElementById("cfgMode").value;
+  document.getElementById("cfgPortRow").classList.toggle("hide", m!=="LOCAL_CONNECTOR");
+  document.getElementById("cfgUrlRow").classList.toggle("hide", m!=="DIRECT_URL");
+  document.getElementById("connStatus").textContent="";
+}
+function toggleArFields(){
+  const v = document.getElementById("cfgArMode").value;
+  document.getElementById("cfgArLedgerRow").classList.toggle("hide", v!=="SINGLE_LEDGER");
+}
+function populateConfigForm(cfg){
+  document.getElementById("cfgCompany").value   = cfg.tally_company_name || "";
+  document.getElementById("cfgMode").value       = cfg.tally_mode || "LOCAL_CONNECTOR";
+  document.getElementById("cfgPort").value       = cfg.connector_port || 9988;
+  document.getElementById("cfgRecording").value  = cfg.recording_mode || "DAY_WISE";
+  document.getElementById("cfgArMode").value     = cfg.ar_mode || "BUSINESS_SOURCE";
+  document.getElementById("cfgArLedger").value   = cfg.ar_ledger_name || "Account Receivable";
+  document.getElementById("cfgGroupTxn").checked = cfg.group_transaction || false;
+  document.getElementById("cfgPos").value        = cfg.place_of_supply || "Gujarat";
+  document.getElementById("cfgTallyUrl").value   = cfg.tally_url || "http://localhost:9000";
+  toggleModeFields(); toggleArFields();
+}
+async function enterConfig(){
+  showScreen("config");
+  if(state.config){ populateConfigForm(state.config); return; }  // instant — already cached
+  try{
+    const cfg = await api("/config");
+    state.config = cfg;
+    populateConfigForm(cfg);
+  }catch(e){
+    if(e.status===401){ doLogout(); return; }
+    showToast("Could not load config: "+e.message,"error");
+  }
+}
+function collectConfig(){
+  return {
+    tally_mode:         document.getElementById("cfgMode").value,
+    tally_company_name: document.getElementById("cfgCompany").value.trim(),
+    connector_port:     parseInt(document.getElementById("cfgPort").value||"9988",10),
+    recording_mode:     document.getElementById("cfgRecording").value,
+    ar_mode:            document.getElementById("cfgArMode").value,
+    ar_ledger_name:     document.getElementById("cfgArLedger").value.trim()||"Account Receivable",
+    group_transaction:  document.getElementById("cfgGroupTxn").checked,
+    place_of_supply:    document.getElementById("cfgPos").value.trim(),
+    tally_url:          document.getElementById("cfgTallyUrl").value.trim(),
+  };
+}
+async function saveConfig(go){
+  const cfg = collectConfig();
+  if(!cfg.tally_company_name){ showToast("Enter the Tally Company Name","error"); return; }
+  const btn = document.getElementById("cfgSaveBtn"); setLoading(btn,true);
+  try{
+    await api("/config",{method:"POST",body:cfg});
+    state.config=cfg;
+    showToast("Config saved","success");
+    if(go) await enterMapping();
+  }catch(e){ showToast("Save failed: "+e.message,"error"); }
+  finally{ setLoading(btn,false); }
+}
+async function testConnection(){
+  const statusEl = document.getElementById("connStatus");
+  const mode = document.getElementById("cfgMode").value;
+  if(mode!=="LOCAL_CONNECTOR"){
+    statusEl.className="conn-status";
+    statusEl.textContent="Direct URL mode — backend posts to Tally on export.";
+    return;
+  }
+  const port = document.getElementById("cfgPort").value||9988;
+  const btn = document.getElementById("cfgTestBtn"); setLoading(btn,true);
+  statusEl.className="conn-status"; statusEl.textContent="Testing…";
+  try{
+    const res = await fetch(`http://localhost:${port}/health`);
+    if(res.ok){ statusEl.className="conn-status online"; statusEl.textContent="● Connector Online"; }
+    else      { statusEl.className="conn-status offline"; statusEl.textContent="● Connector HTTP "+res.status; }
+  }catch(e){
+    statusEl.className="conn-status offline";
+    statusEl.textContent="● Connector Offline — is connector.py running on the VM?";
+  }finally{ setLoading(btn,false); }
+}
+
+/* ============================================================
+   SCREEN 3 — LEDGER MAPPING
+============================================================ */
+const TYPE_ROW_CLASS = {
+  "Revenue":"t-revenue","Tax":"t-tax","Payment Method":"t-payment","City Ledger":"t-city",
+  "Liability":"t-liab","Expense":"t-expense","Paid-out":"t-pout",
+};
+const TYPE_DEFAULTS = {
+  ROOM_RENT:"Room Revenue", EXTRA_BED:"Extra Bed Revenue", POS_REVENUE:"Restaurant Revenue",
+  GST_5_CGST:"CGST Output @2.5%", GST_5_SGST:"SGST Output @2.5%",
+  GST_12_CGST:"CGST Output @6%",  GST_12_SGST:"SGST Output @6%",
+  GST_18_CGST:"CGST Output @9%",  GST_18_SGST:"SGST Output @9%",
+  BANK_TRANSFER:"Bank Transfer", CASH:"Cash", CARD:"Card", UPI:"UPI",
+  BOOKING_COM:"Booking.com",
+  ADVANCE_COLLECTED:"Advance Collected from Guest", DISCOUNT:"Discount",
+  HOUSEKEEPING:"Housekeeping Expense", LAUNDRY:"Laundry Expense",
+};
+
+async function enterMapping(){
+  showScreen("mapping");
+  if(state.entities.length){ renderMapping(); return; }  // instant — already cached
+  const tbody = document.getElementById("mapBody");
+  tbody.innerHTML='<tr><td colspan="4" class="muted-line">Loading…</td></tr>';
+  try{
+    const [eR,mR] = await Promise.all([api("/mappings/entities"),api("/mappings")]);
+    state.entities = eR.entities||[];
+    state.mappings = mR.mappings||{};
+    renderMapping();
+  }catch(e){
+    if(e.status===401){ doLogout(); return; }
+    tbody.innerHTML="";
+    showToast("Load failed: "+e.message,"error");
+  }
+}
+function renderMapping(){
+  const tbody = document.getElementById("mapBody"); tbody.innerHTML="";
+  state.entities.forEach(ent=>{
+    const cls = TYPE_ROW_CLASS[ent.type]||"";
+    const val = state.mappings[ent.id]||"";
+    const ph  = TYPE_DEFAULTS[ent.id]||"";
+    const tr  = document.createElement("tr"); tr.className=cls;
+    tr.innerHTML=
+      `<td><strong>${esc(ent.label)}</strong><div class="ent-id">${esc(ent.id)}</div></td>`+
+      `<td><span class="type-badge ${cls}">${esc(ent.type)}</span></td>`+
+      `<td class="arrow">→</td>`+
+      `<td><input class="ledger-input" data-id="${escAttr(ent.id)}" value="${escAttr(val)}" placeholder="${escAttr(ph)}"></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function collectMappings(){
+  const m={};
+  document.querySelectorAll(".ledger-input").forEach(i=>{ const v=i.value.trim(); if(v) m[i.dataset.id]=v; });
+  return m;
+}
+async function saveMappings(go){
+  const m = collectMappings();
+  const btn = document.getElementById(go?"mapContinueBtn":"mapSaveBtn"); setLoading(btn,true);
+  try{
+    await api("/mappings",{method:"POST",body:{mappings:m}});
+    state.mappings=m;
+    showToast("Mappings saved","success");
+    if(go) await enterTransactions();
+  }catch(e){ showToast("Save failed: "+e.message,"error"); }
+  finally{ setLoading(btn,false); }
+}
+
+/* ============================================================
+   SCREEN 4 — TRANSACTIONS (sidebar + tabs)
+============================================================ */
+function enterTransactions(){
+  showScreen("transactions");
+  // config + mappings are pre-loaded by prefetchAll() — no API call needed here
+  // Set default dates on all tab toolbars
+  const today = todayISO();
+  ["sales","rcpt","pmt","jnl","pos"].forEach(pfx=>{
+    const f=document.getElementById(pfx+"-from"), t=document.getElementById(pfx+"-to");
+    if(f && !f.value) f.value=today;
+    if(t && !t.value) t.value=today;
+  });
+  updateSalesModePill();
+}
+
+function updateSalesModePill(){
+  const mode = (state.config||{}).recording_mode || "DAY_WISE";
+  const labels = {DAY_WISE:"Day-wise",CHECKOUT_WISE:"Checkout-wise",SUMMARIZED:"Summarized"};
+  const pill = document.getElementById("sales-mode-pill");
+  if(pill) pill.textContent = labels[mode]||mode;
+}
+
+function switchTab(tab){
+  document.querySelectorAll(".sidebar-item").forEach(el=>el.classList.toggle("active",el.dataset.tab===tab));
+  ["sales","receipts","payments","journals","pos"].forEach(t=>{
+    document.getElementById("tab-"+t).classList.toggle("hide",t!==tab);
+  });
+}
+
+/* ---- Status helpers ---- */
+function statusBadge(s){
+  const cls={PENDING:"b-pending",POSTED:"b-posted",ERROR:"b-error",CONNECTOR_OFFLINE:"b-offline"}[s]||"b-pending";
+  return `<span class="badge ${cls}">${esc(s||"PENDING")}</span>`;
+}
+function toggleAll(pfx){
+  const box = document.getElementById(pfx+"-selectAll");
+  document.querySelectorAll(`.tab-check[data-pfx="${pfx}"]`).forEach(c=>c.checked=box.checked);
+}
+function selectedChecks(pfx){
+  return [...document.querySelectorAll(`.tab-check[data-pfx="${pfx}"]:checked`)].map(c=>c.dataset.id);
+}
+
+/* ============================================================
+   MAPPING LOOKUPS
+============================================================ */
+function getMapping(key, fallback){
+  return (state.mappings[key]||"").trim() || fallback || key;
+}
+function getTaxLedgers(taxType){
+  if(taxType==="GST_5")  return {cgst:getMapping("GST_5_CGST","CGST Output @2.5%"),  sgst:getMapping("GST_5_SGST","SGST Output @2.5%")};
+  if(taxType==="GST_18") return {cgst:getMapping("GST_18_CGST","CGST Output @9%"),   sgst:getMapping("GST_18_SGST","SGST Output @9%")};
+  return                        {cgst:getMapping("GST_12_CGST","CGST Output @6%"),   sgst:getMapping("GST_12_SGST","SGST Output @6%")};
+}
+function getRevenueLedger(chargeType){
+  const defs = {ROOM_RENT:"Room Revenue",EXTRA_BED:"Extra Bed Revenue",POS_REVENUE:"Restaurant Revenue"};
+  return getMapping(chargeType, defs[chargeType]||"Room Revenue");
+}
+function getPaymentLedger(method){
+  const defs = {CASH:"Cash",CARD:"Card",UPI:"UPI",BANK_TRANSFER:"Bank Transfer",BOOKING_COM:"Booking.com"};
+  return getMapping(method, defs[method]||method);
+}
+function getArLedger(folio){
+  const cfg = state.config||{};
+  const mode = cfg.ar_mode||"GUEST_NAME";
+  if(mode==="SINGLE_LEDGER") return (cfg.ar_ledger_name||"Account Receivable").trim();
+  if(mode==="BUSINESS_SOURCE" && folio.business_source) return getPaymentLedger(folio.business_source);
+  return folio.guest_name;
+}
+
+/* ============================================================
+   XML BUILDERS
+============================================================ */
+function buildVoucherXml({companyName, voucherType, date, narration, entries}){
+  const lines = entries.map(e=>`
+            <ALLLEDGERENTRIES.LIST>
+              <LEDGERNAME>${esc(e.ledger)}</LEDGERNAME>
+              <ISDEEMEDPOSITIVE>${e.isDebit?"Yes":"No"}</ISDEEMEDPOSITIVE>
+              <AMOUNT>${e.isDebit?"-":""}${money(e.amount)}</AMOUNT>
+            </ALLLEDGERENTRIES.LIST>`).join("");
+  return `<?xml version="1.0" encoding="utf-8"?>
+<ENVELOPE>
+  <HEADER><TALLYREQUEST>Import Data</TALLYREQUEST></HEADER>
+  <BODY>
+    <IMPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>Vouchers</REPORTNAME>
+        <STATICVARIABLES><SVCURRENTCOMPANY>${esc(companyName)}</SVCURRENTCOMPANY></STATICVARIABLES>
+      </REQUESTDESC>
+      <REQUESTDATA>
+        <TALLYMESSAGE xmlns:UDF="TallyUDF">
+          <VOUCHER VCHTYPE="${escAttr(voucherType)}" ACTION="Create" OBJVIEW="Accounting Voucher View">
+            <DATE>${esc(date)}</DATE>
+            <NARRATION>${esc(narration)}</NARRATION>
+            <VOUCHERTYPENAME>${esc(voucherType)}</VOUCHERTYPENAME>${lines}
+          </VOUCHER>
+        </TALLYMESSAGE>
+      </REQUESTDATA>
+    </IMPORTDATA>
+  </BODY>
+</ENVELOPE>`;
+}
+
+/* Add CR entries (revenue + taxes) for one charge */
+function addChargeEntries(entries, charge){
+  const rev = getRevenueLedger(charge.charge_type);
+  const {cgst,sgst} = getTaxLedgers(charge.tax_type);
+  entries.push({ledger:rev,  isDebit:false, amount:charge.base_amount});
+  entries.push({ledger:cgst, isDebit:false, amount:charge.cgst_amount});
+  entries.push({ledger:sgst, isDebit:false, amount:charge.sgst_amount});
+}
+
+/* Group revenue/tax entries across multiple charges */
+function addGroupedChargeEntries(entries, charges){
+  const groups={};
+  charges.forEach(c=>{
+    const k=c.charge_type+"_"+c.tax_type;
+    if(!groups[k]) groups[k]={charge_type:c.charge_type,tax_type:c.tax_type,base:0,cgst:0,sgst:0};
+    groups[k].base+=c.base_amount; groups[k].cgst+=c.cgst_amount; groups[k].sgst+=c.sgst_amount;
+  });
+  Object.values(groups).forEach(g=>{
+    const rev=getRevenueLedger(g.charge_type), {cgst,sgst}=getTaxLedgers(g.tax_type);
+    entries.push({ledger:rev, isDebit:false,amount:g.base});
+    entries.push({ledger:cgst,isDebit:false,amount:g.cgst});
+    entries.push({ledger:sgst,isDebit:false,amount:g.sgst});
+  });
+}
+
+/* ---- Sales JV for a single charge (DAY_WISE) ---- */
+function buildDayWiseXml(folio, charge, isLastCharge){
+  const cfg = state.config||{};
+  const discountPmt = isLastCharge ? folio.payments.find(p=>p.payment_type==="DISCOUNT") : null;
+  const discountAmt = discountPmt ? discountPmt.amount : 0;
+  const arLedger    = getArLedger(folio);
+  const arNet       = charge.total_amount - discountAmt;
+
+  const entries=[];
+  // When discount > charge total, arNet is negative — flip to a credit so Tally accepts it.
+  if(arNet>=0){ entries.push({ledger:arLedger, isDebit:true,  amount:arNet}); }
+  else         { entries.push({ledger:arLedger, isDebit:false, amount:-arNet}); }
+  if(discountAmt>0) entries.push({ledger:getMapping("DISCOUNT","Discount"), isDebit:true, amount:discountAmt});
+  addChargeEntries(entries, charge);
+
+  return buildVoucherXml({
+    companyName: cfg.tally_company_name||"",
+    voucherType:"Sales",
+    date: toTallyDate(charge.charge_date),
+    narration:`Room sale – ${folio.guest_name} – Room ${folio.room_number} – ${charge.charge_label} – ${charge.charge_date} – Folio ${folio.folio_id}`,
+    entries,
+  });
+}
+
+/* ---- Sales JV for a full folio (CHECKOUT_WISE) ---- */
+function buildCheckoutWiseXml(folio){
+  const cfg = state.config||{};
+  const discountPmt = folio.payments.find(p=>p.payment_type==="DISCOUNT");
+  const discountAmt = discountPmt ? discountPmt.amount : 0;
+  const totalCharges = folio.charges.reduce((s,c)=>s+c.total_amount,0);
+  const arLedger = getArLedger(folio);
+
+  const entries=[];
+  entries.push({ledger:arLedger, isDebit:true, amount:totalCharges-discountAmt});
+  if(discountAmt>0) entries.push({ledger:getMapping("DISCOUNT","Discount"), isDebit:true, amount:discountAmt});
+  if(cfg.group_transaction) addGroupedChargeEntries(entries,folio.charges);
+  else folio.charges.forEach(c=>addChargeEntries(entries,c));
+
+  return buildVoucherXml({
+    companyName:cfg.tally_company_name||"",
+    voucherType:"Sales",
+    date:toTallyDate(folio.check_out),
+    narration:`Room sales – ${folio.guest_name} – Room ${folio.room_number} – ${folio.check_in} to ${folio.check_out} – Folio ${folio.folio_id}`,
+    entries,
+  });
+}
+
+/* ---- Sales JV for a full folio (SUMMARIZED) ---- */
+function buildSummarizedXml(folio){
+  const cfg = state.config||{};
+  const totalCharges = folio.charges.reduce((s,c)=>s+c.total_amount,0);
+  const arLedger = getArLedger(folio);
+
+  const entries=[];
+  let totalPmts=0;
+  folio.payments.forEach(p=>{
+    let ledger;
+    if(p.payment_type==="DISCOUNT") ledger=getMapping("DISCOUNT","Discount");
+    else ledger=getPaymentLedger(p.payment_method);
+    entries.push({ledger,isDebit:true,amount:p.amount});
+    totalPmts+=p.amount;
+  });
+  const arBal = Math.round((totalCharges-totalPmts)*100)/100;
+  if(arBal>0.005) entries.push({ledger:arLedger,isDebit:true,amount:arBal});
+
+  addGroupedChargeEntries(entries,folio.charges);
+
+  return buildVoucherXml({
+    companyName:cfg.tally_company_name||"",
+    voucherType:"Sales",
+    date:toTallyDate(folio.check_out),
+    narration:`Summarized sale – ${folio.guest_name} – Room ${folio.room_number} – ${folio.check_in} to ${folio.check_out} – Folio ${folio.folio_id}`,
+    entries,
+  });
+}
+
+/* ---- Receipt JV ---- */
+function buildReceiptXml(receipt){
+  const cfg = state.config||{};
+  const pmtLedger = getPaymentLedger(receipt.payment_method);
+  let crLedger;
+  if(receipt.payment_type==="ADVANCE"){
+    crLedger = getMapping("ADVANCE_COLLECTED","Advance Collected from Guest");
+  } else {
+    const folio = state.folios.find(f=>f.folio_id===receipt.folio_id);
+    crLedger = folio ? getArLedger(folio) : (receipt.guest_name||"Account Receivable");
+  }
+  return buildVoucherXml({
+    companyName:cfg.tally_company_name||"",
+    voucherType:"Receipt",
+    date:toTallyDate(receipt.payment_date),
+    narration:`${receipt.description} – ${receipt.guest_name} – Folio ${receipt.folio_id}`,
+    entries:[
+      {ledger:pmtLedger, isDebit:true,  amount:receipt.amount},
+      {ledger:crLedger,  isDebit:false, amount:receipt.amount},
+    ],
+  });
+}
+
+/* ---- Journal JV ---- */
+function buildJournalXml(journal){
+  const cfg = state.config||{};
+  let drLedger, crLedger;
+  if(journal.journal_type==="ADVANCE_TRANSFER"){
+    drLedger = getMapping("ADVANCE_COLLECTED","Advance Collected from Guest");
+    const folio = state.folios.find(f=>f.folio_id===journal.folio_id);
+    crLedger = folio ? getArLedger(folio) : getPaymentLedger("BOOKING_COM");
+  } else {
+    // CITY_LEDGER_RECEIPT: DR Cash/Bank, CR City Ledger
+    drLedger = getPaymentLedger(journal.debit_ledger_key);
+    crLedger = getPaymentLedger(journal.credit_ledger_key);
+  }
+  return buildVoucherXml({
+    companyName:cfg.tally_company_name||"",
+    voucherType:"Journal",
+    date:toTallyDate(journal.journal_date),
+    narration:journal.description,
+    entries:[
+      {ledger:drLedger,isDebit:true, amount:journal.amount},
+      {ledger:crLedger,isDebit:false,amount:journal.amount},
+    ],
+  });
+}
+
+/* ---- Payment JV ---- */
+function buildPaymentXml(paidout){
+  const cfg = state.config||{};
+  const expLedger = getMapping(paidout.expense_type, paidout.expense_label);
+  const pmtLedger = getPaymentLedger(paidout.payment_method);
+  return buildVoucherXml({
+    companyName:cfg.tally_company_name||"",
+    voucherType:"Payment",
+    date:toTallyDate(paidout.date),
+    narration:paidout.description,
+    entries:[
+      {ledger:expLedger,isDebit:true, amount:paidout.amount},
+      {ledger:pmtLedger,isDebit:false,amount:paidout.amount},
+    ],
+  });
+}
+
+/* ---- POS Sales JV ---- */
+function buildPOSSalesXml(bill){
+  const cfg = state.config||{};
+  const revLedger = getMapping("POS_REVENUE","Restaurant Revenue");
+  const {cgst,sgst} = getTaxLedgers(bill.tax_type);
+  let drLedger;
+  if(bill.payment_method==="ROOM_POST"){
+    const folio = state.folios.find(f=>f.folio_id===bill.folio_id);
+    drLedger = folio ? getArLedger(folio) : (bill.guest_name||"Account Receivable");
+  } else {
+    drLedger = getPaymentLedger(bill.payment_method);
+  }
+  return buildVoucherXml({
+    companyName:cfg.tally_company_name||"",
+    voucherType:"Sales",
+    date:toTallyDate(bill.bill_date),
+    narration:`POS Sale – ${bill.outlet} – ${bill.guest_name} – ${bill.items}`,
+    entries:[
+      {ledger:drLedger,isDebit:true, amount:bill.total_amount},
+      {ledger:revLedger,isDebit:false,amount:bill.base_amount},
+      {ledger:cgst,    isDebit:false,amount:bill.cgst_amount},
+      {ledger:sgst,    isDebit:false,amount:bill.sgst_amount},
+    ],
+  });
+}
+
+/* ---- Get XML for a Sales record by ID ---- */
+function getSalesXml(id){
+  const cfg = state.config||{};
+  const mode = cfg.recording_mode||"DAY_WISE";
+
+  if(mode!=="DAY_WISE"){
+    const folio = state.folios.find(f=>f.folio_id===id);
+    if(!folio) return null;
+    return mode==="SUMMARIZED" ? buildSummarizedXml(folio) : buildCheckoutWiseSalesXml(folio);
+  }
+  // DAY_WISE: find the charge
+  for(const folio of state.folios){
+    const idx = folio.charges.findIndex(c=>c.id===id);
+    if(idx>=0){
+      const isLast = idx===folio.charges.length-1;
+      return buildDayWiseXml(folio, folio.charges[idx], isLast);
+    }
+  }
+  return null;
+}
+
+/* ============================================================
+   TALLY POSTING
+============================================================ */
+function parseTallyResponse(xmlStr){
+  const doc = new DOMParser().parseFromString(xmlStr,"text/xml");
+  const created   = parseInt(doc.querySelector("CREATED")?.textContent??"0",10);
+  const lineError = (doc.querySelector("LINEERROR")?.textContent??"").trim();
+  const combError = (doc.querySelector("COMBINEDERROR")?.textContent??"").trim();
+  if(created>0 && !lineError && !combError) return {success:true};
+  return {success:false,error:lineError||combError||"Unknown Tally error"};
+}
+
+async function postXmlToTally(xml){
+  const cfg = state.config||{};
+  let url, headers;
+  if(cfg.tally_mode==="DIRECT_URL"){
+    url = normBackend(state.backendUrl)+"/tally/post";
+    headers = {"Content-Type":"text/xml","Authorization":"Bearer "+state.token};
+  } else {
+    url = `http://localhost:${cfg.connector_port||9988}/post-to-tally`;
+    headers = {"Content-Type":"text/xml","X-KTI-Token":KTI_TOKEN};
+  }
+  try{
+    const res = await fetch(url,{method:"POST",headers,body:xml});
+    const text = await res.text();
+    if(!res.ok){
+      let msg=text; try{ msg=JSON.parse(text).error||text; }catch(e){}
+      return {status:"ERROR",response:msg};
+    }
+    const parsed = parseTallyResponse(text);
+    return {status:parsed.success?"POSTED":"ERROR", response:parsed.success?text:(parsed.error+"\n\n"+text)};
+  }catch(err){
+    const hint = cfg.tally_mode==="DIRECT_URL"
+      ? "is the backend reachable (ngrok up)?"
+      : "is connector.py running on the VM?";
+    return {status:"CONNECTOR_OFFLINE",response:err.message+" — "+hint};
+  }
+}
+
+async function saveStatuses(updates){
+  try{ await api("/transactions/update-status",{method:"POST",body:{updates}}); }
+  catch(e){ showToast("Could not save statuses: "+e.message,"error"); }
+}
+
+/* ============================================================
+   SALES TAB
+============================================================ */
+async function fetchSales(){
+  const from=document.getElementById("sales-from").value, to=document.getElementById("sales-to").value;
+  const btn=document.getElementById("sales-fetchBtn"); setLoading(btn,true);
+  try{
+    const data = await api(`/transactions/folios?from_date=${from}&to_date=${to}`);
+    state.folios = data.folios||[];
+    renderSalesTable();
+    updateSalesModePill();
+    const cfg = state.config||{};
+    const mode = cfg.recording_mode||"DAY_WISE";
+    const count = mode==="DAY_WISE"
+      ? state.folios.reduce((s,f)=>s+f.charges.length,0)
+      : state.folios.length;
+    document.getElementById("sales-found").textContent = `${count} record(s) found`;
+    document.getElementById("sales-exportBtn").disabled = count===0;
+    document.getElementById("sales-previewBtn").disabled = count===0;
+    document.getElementById("sales-summary").textContent="";
+  }catch(e){
+    if(e.status===401){ doLogout(); return; }
+    showToast("Fetch failed: "+e.message,"error");
+  }finally{ setLoading(btn,false); }
+}
+
+function renderSalesTable(){
+  const cfg = state.config||{};
+  const mode = cfg.recording_mode||"DAY_WISE";
+  const thead = document.getElementById("sales-thead");
+  const tbody = document.getElementById("sales-body");
+
+  if(mode==="DAY_WISE"){
+    thead.innerHTML=`<tr>
+      <th><input type="checkbox" id="sales-selectAll" onclick="toggleAll('sales')" checked /></th>
+      <th>Folio #</th><th>Guest</th><th>Room</th><th>Date</th><th>Charge</th><th>Tax</th>
+      <th class="num">Amount ₹</th><th>Status</th></tr>`;
+    tbody.innerHTML="";
+    let anyRow=false;
+    state.folios.forEach(folio=>{
+      folio.charges.forEach((c,idx)=>{
+        anyRow=true;
+        const res = state.tabs.sales.results[c.id];
+        const view = res?`<button class="link-btn" onclick="viewSalesResult('${c.id}')">view</button>`:"";
+        const status = res?res.status:(c.tally_status||"PENDING");
+        const tr=document.createElement("tr");
+        tr.innerHTML=
+          `<td><input type="checkbox" class="tab-check" data-pfx="sales" data-id="${escAttr(c.id)}" ${status!=="POSTED"?"checked":""}></td>`+
+          `<td>${esc(folio.folio_id)}</td>`+
+          `<td>${esc(folio.guest_name)}</td>`+
+          `<td>${esc(folio.room_number)}</td>`+
+          `<td>${esc(c.charge_date)}</td>`+
+          `<td>${esc(c.charge_label)}</td>`+
+          `<td>${esc(c.tax_label)}</td>`+
+          `<td class="num">₹${money(c.total_amount)}</td>`+
+          `<td id="sales-status-${escAttr(c.id)}">${statusBadge(status)} ${view}</td>`;
+        tbody.appendChild(tr);
+      });
+    });
+    if(!anyRow) tbody.innerHTML='<tr><td colspan="9" class="muted-line">No charges found.</td></tr>';
+  } else {
+    thead.innerHTML=`<tr>
+      <th><input type="checkbox" id="sales-selectAll" onclick="toggleAll('sales')" checked /></th>
+      <th>Folio #</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Nights</th>
+      <th class="num">Total ₹</th><th>Status</th></tr>`;
+    tbody.innerHTML="";
+    state.folios.forEach(folio=>{
+      const total=folio.charges.reduce((s,c)=>s+c.total_amount,0);
+      const res=state.tabs.sales.results[folio.folio_id];
+      const view=res?`<button class="link-btn" onclick="viewSalesResult('${folio.folio_id}')">view</button>`:"";
+      const status=res?res.status:(folio.tally_status||"PENDING");
+      const tr=document.createElement("tr");
+      tr.innerHTML=
+        `<td><input type="checkbox" class="tab-check" data-pfx="sales" data-id="${escAttr(folio.folio_id)}" ${status!=="POSTED"?"checked":""}></td>`+
+        `<td>${esc(folio.folio_id)}</td>`+
+        `<td>${esc(folio.guest_name)}</td>`+
+        `<td>${esc(folio.room_number)}</td>`+
+        `<td>${esc(folio.check_in)}</td>`+
+        `<td>${esc(folio.check_out)}</td>`+
+        `<td>${esc(folio.nights)}</td>`+
+        `<td class="num">₹${money(total)}</td>`+
+        `<td id="sales-status-${escAttr(folio.folio_id)}">${statusBadge(status)} ${view}</td>`;
+      tbody.appendChild(tr);
+    });
+    if(state.folios.length===0) tbody.innerHTML='<tr><td colspan="9" class="muted-line">No folios found.</td></tr>';
+  }
+}
+
+async function exportSales(){
+  if(!state.config){ showToast("Config not loaded","error"); return; }
+  const ids = selectedChecks("sales");
+  if(!ids.length){ showToast("Select at least one record","error"); return; }
+  const btn = document.getElementById("sales-exportBtn"); setLoading(btn,true);
+  let posted=0,failed=0,offline=0;
+  const updates=[];
+  for(const id of ids){
+    const statusCell = document.getElementById("sales-status-"+id);
+    if(statusCell) statusCell.innerHTML=statusBadge("PENDING")+" <span class='muted-line'>posting…</span>";
+    const xml = getSalesXml(id);
+    if(!xml){ if(statusCell) statusCell.innerHTML=statusBadge("ERROR"); failed++; continue; }
+    const r = await postXmlToTally(xml);
+    state.tabs.sales.results[id]={request:xml,response:r.response,status:r.status};
+    await new Promise(res=>setTimeout(res,400)); // give Tally time to commit before next request
+    const view=`<button class="link-btn" onclick="viewSalesResult('${id}')">view</button>`;
+    if(statusCell) statusCell.innerHTML=statusBadge(r.status)+" "+view;
+    if(r.status==="POSTED") posted++; else if(r.status==="CONNECTOR_OFFLINE") offline++; else failed++;
+    updates.push({transaction_id:id,status:r.status,tally_response:String(r.response||"").slice(0,2000)});
+  }
+  await saveStatuses(updates);
+  setLoading(btn,false);
+  const s=`${posted} posted, ${failed} failed`+(offline?`, ${offline} connector offline`:"");
+  document.getElementById("sales-summary").textContent=s;
+  showToast(s,(offline||failed)?"error":"success");
+}
+
+function previewSalesXml(){
+  const ids = selectedChecks("sales");
+  const id = ids[0] || (state.folios[0]?.folio_id) || (state.folios[0]?.charges[0]?.id);
+  if(!id){ showToast("Fetch first","error"); return; }
+  const xml = getSalesXml(id);
+  showModal("Preview XML — "+id, xml, "(not sent yet — this is a preview)");
+}
+
+function viewSalesResult(id){
+  const r=state.tabs.sales.results[id]; if(!r) return;
+  showModal("Sales "+id+" — "+r.status, r.request||"(none)", r.response||"(none)");
+}
+
+/* ============================================================
+   RECEIPT TAB
+============================================================ */
+async function fetchReceipts(){
+  const from=document.getElementById("rcpt-from").value, to=document.getElementById("rcpt-to").value;
+  const btn=document.getElementById("rcpt-fetchBtn"); setLoading(btn,true);
+  try{
+    const d=await api(`/transactions/receipts?from_date=${from}&to_date=${to}`);
+    state.tabs.receipts.records=d.receipts||[];
+    renderReceiptsTable();
+    document.getElementById("rcpt-found").textContent=`${state.tabs.receipts.records.length} record(s) found`;
+    const has=state.tabs.receipts.records.length>0;
+    document.getElementById("rcpt-exportBtn").disabled=!has;
+    document.getElementById("rcpt-previewBtn").disabled=!has;
+    document.getElementById("rcpt-summary").textContent="";
+  }catch(e){
+    if(e.status===401){ doLogout(); return; }
+    showToast("Fetch failed: "+e.message,"error");
+  }finally{ setLoading(btn,false); }
+}
+
+function renderReceiptsTable(){
+  const tbody=document.getElementById("rcpt-body"); tbody.innerHTML="";
+  const recs=state.tabs.receipts.records;
+  if(!recs.length){ tbody.innerHTML='<tr><td colspan="8" class="muted-line">No receipts found.</td></tr>'; return; }
+  recs.forEach(r=>{
+    const res=state.tabs.receipts.results[r.id];
+    const status=res?res.status:(r.tally_status||"PENDING");
+    const view=res?`<button class="link-btn" onclick="viewTabResult('receipts','${r.id}')">view</button>`:"";
+    const tr=document.createElement("tr");
+    tr.innerHTML=
+      `<td><input type="checkbox" class="tab-check" data-pfx="rcpt" data-id="${escAttr(r.id)}" ${status!=="POSTED"?"checked":""}></td>`+
+      `<td>${esc(r.folio_id)}</td>`+
+      `<td>${esc(r.guest_name)}</td>`+
+      `<td>${esc(r.payment_date)}</td>`+
+      `<td>${esc(r.payment_type)}</td>`+
+      `<td>${esc(r.payment_method)}</td>`+
+      `<td class="num">₹${money(r.amount)}</td>`+
+      `<td id="rcpt-status-${escAttr(r.id)}">${statusBadge(status)} ${view}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ============================================================
+   PAYMENT TAB
+============================================================ */
+async function fetchPayments(){
+  const from=document.getElementById("pmt-from").value, to=document.getElementById("pmt-to").value;
+  const btn=document.getElementById("pmt-fetchBtn"); setLoading(btn,true);
+  try{
+    const d=await api(`/transactions/payments?from_date=${from}&to_date=${to}`);
+    state.tabs.payments.records=d.payments||[];
+    renderPaymentsTable();
+    document.getElementById("pmt-found").textContent=`${state.tabs.payments.records.length} record(s) found`;
+    const has=state.tabs.payments.records.length>0;
+    document.getElementById("pmt-exportBtn").disabled=!has;
+    document.getElementById("pmt-previewBtn").disabled=!has;
+    document.getElementById("pmt-summary").textContent="";
+  }catch(e){
+    if(e.status===401){ doLogout(); return; }
+    showToast("Fetch failed: "+e.message,"error");
+  }finally{ setLoading(btn,false); }
+}
+
+function renderPaymentsTable(){
+  const tbody=document.getElementById("pmt-body"); tbody.innerHTML="";
+  const recs=state.tabs.payments.records;
+  if(!recs.length){ tbody.innerHTML='<tr><td colspan="8" class="muted-line">No paid-outs found.</td></tr>'; return; }
+  recs.forEach(r=>{
+    const res=state.tabs.payments.results[r.id];
+    const status=res?res.status:(r.tally_status||"PENDING");
+    const view=res?`<button class="link-btn" onclick="viewTabResult('payments','${r.id}')">view</button>`:"";
+    const tr=document.createElement("tr");
+    tr.innerHTML=
+      `<td><input type="checkbox" class="tab-check" data-pfx="pmt" data-id="${escAttr(r.id)}" ${status!=="POSTED"?"checked":""}></td>`+
+      `<td>${esc(r.id)}</td>`+
+      `<td>${esc(r.description)}</td>`+
+      `<td>${esc(r.date)}</td>`+
+      `<td>${esc(r.expense_label)}</td>`+
+      `<td>${esc(r.payment_method)}</td>`+
+      `<td class="num">₹${money(r.amount)}</td>`+
+      `<td id="pmt-status-${escAttr(r.id)}">${statusBadge(status)} ${view}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ============================================================
+   JOURNAL TAB
+============================================================ */
+async function fetchJournals(){
+  const from=document.getElementById("jnl-from").value, to=document.getElementById("jnl-to").value;
+  const btn=document.getElementById("jnl-fetchBtn"); setLoading(btn,true);
+  try{
+    // also ensure folios are loaded (needed for AR ledger resolution)
+    if(!state.folios.length){
+      const fd=await api(`/transactions/folios`);
+      state.folios=fd.folios||[];
+    }
+    const d=await api(`/transactions/journals?from_date=${from}&to_date=${to}`);
+    state.tabs.journals.records=d.journals||[];
+    renderJournalsTable();
+    document.getElementById("jnl-found").textContent=`${state.tabs.journals.records.length} record(s) found`;
+    const has=state.tabs.journals.records.length>0;
+    document.getElementById("jnl-exportBtn").disabled=!has;
+    document.getElementById("jnl-previewBtn").disabled=!has;
+    document.getElementById("jnl-summary").textContent="";
+  }catch(e){
+    if(e.status===401){ doLogout(); return; }
+    showToast("Fetch failed: "+e.message,"error");
+  }finally{ setLoading(btn,false); }
+}
+
+function jnlTypeLabel(t){
+  return t==="ADVANCE_TRANSFER"?"Advance → AR":t==="CITY_LEDGER_RECEIPT"?"City Ledger Receipt":t;
+}
+
+function renderJournalsTable(){
+  const tbody=document.getElementById("jnl-body"); tbody.innerHTML="";
+  const recs=state.tabs.journals.records;
+  if(!recs.length){ tbody.innerHTML='<tr><td colspan="10" class="muted-line">No journal entries found.</td></tr>'; return; }
+  recs.forEach(r=>{
+    const res=state.tabs.journals.results[r.id];
+    const status=res?res.status:(r.tally_status||"PENDING");
+    const view=res?`<button class="link-btn" onclick="viewTabResult('journals','${r.id}')">view</button>`:"";
+
+    let drL,crL;
+    if(r.journal_type==="ADVANCE_TRANSFER"){
+      drL=getMapping("ADVANCE_COLLECTED","Advance Collected from Guest");
+      const folio=state.folios.find(f=>f.folio_id===r.folio_id);
+      crL=folio?getArLedger(folio):getPaymentLedger("BOOKING_COM");
+    } else {
+      drL=getPaymentLedger(r.debit_ledger_key);
+      crL=getPaymentLedger(r.credit_ledger_key);
+    }
+
+    const tr=document.createElement("tr");
+    tr.innerHTML=
+      `<td><input type="checkbox" class="tab-check" data-pfx="jnl" data-id="${escAttr(r.id)}" ${status!=="POSTED"?"checked":""}></td>`+
+      `<td>${esc(r.id)}</td>`+
+      `<td>${esc(r.folio_id)}</td>`+
+      `<td>${esc(r.guest_name)}</td>`+
+      `<td>${esc(r.journal_date)}</td>`+
+      `<td>${esc(jnlTypeLabel(r.journal_type))}</td>`+
+      `<td>${esc(drL)}</td>`+
+      `<td>${esc(crL)}</td>`+
+      `<td class="num">₹${money(r.amount)}</td>`+
+      `<td id="jnl-status-${escAttr(r.id)}">${statusBadge(status)} ${view}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ============================================================
+   POS TAB
+============================================================ */
+async function fetchPOS(){
+  const from=document.getElementById("pos-from").value, to=document.getElementById("pos-to").value;
+  const btn=document.getElementById("pos-fetchBtn"); setLoading(btn,true);
+  try{
+    if(!state.folios.length){
+      const fd=await api(`/transactions/folios`);
+      state.folios=fd.folios||[];
+    }
+    const d=await api(`/transactions/pos?from_date=${from}&to_date=${to}`);
+    state.tabs.pos.records=d.pos_bills||[];
+    renderPOSTable();
+    document.getElementById("pos-found").textContent=`${state.tabs.pos.records.length} bill(s) found`;
+    const has=state.tabs.pos.records.length>0;
+    document.getElementById("pos-exportBtn").disabled=!has;
+    document.getElementById("pos-previewBtn").disabled=!has;
+    document.getElementById("pos-summary").textContent="";
+  }catch(e){
+    if(e.status===401){ doLogout(); return; }
+    showToast("Fetch failed: "+e.message,"error");
+  }finally{ setLoading(btn,false); }
+}
+
+function renderPOSTable(){
+  const tbody=document.getElementById("pos-body"); tbody.innerHTML="";
+  const recs=state.tabs.pos.records;
+  if(!recs.length){ tbody.innerHTML='<tr><td colspan="9" class="muted-line">No POS bills found.</td></tr>'; return; }
+  recs.forEach(r=>{
+    const res=state.tabs.pos.results[r.id];
+    const status=res?res.status:(r.tally_status||"PENDING");
+    const view=res?`<button class="link-btn" onclick="viewTabResult('pos','${r.id}')">view</button>`:"";
+    const tr=document.createElement("tr");
+    tr.innerHTML=
+      `<td><input type="checkbox" class="tab-check" data-pfx="pos" data-id="${escAttr(r.id)}" ${status!=="POSTED"?"checked":""}></td>`+
+      `<td>${esc(r.id)}</td>`+
+      `<td>${esc(r.outlet)}</td>`+
+      `<td>${esc(r.guest_name)}</td>`+
+      `<td>${esc(r.bill_date)}</td>`+
+      `<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escAttr(r.items)}">${esc(r.items)}</td>`+
+      `<td>${esc(r.tax_label)}</td>`+
+      `<td class="num">₹${money(r.total_amount)}</td>`+
+      `<td id="pos-status-${escAttr(r.id)}">${statusBadge(status)} ${view}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ============================================================
+   GENERIC EXPORT (for Receipt, Payment, Journal, POS tabs)
+============================================================ */
+const TAB_XML_FN = {
+  receipts: r => buildReceiptXml(r),
+  payments: r => buildPaymentXml(r),
+  journals: r => buildJournalXml(r),
+  pos:      r => buildPOSSalesXml(r),
+};
+const TAB_PFX = {receipts:"rcpt", payments:"pmt", journals:"jnl", pos:"pos"};
+
+async function exportTab(tabName){
+  if(!state.config){ showToast("Config not loaded","error"); return; }
+  const pfx = TAB_PFX[tabName];
+  const ids = selectedChecks(pfx);
+  if(!ids.length){ showToast("Select at least one record","error"); return; }
+  const btn = document.getElementById(pfx+"-exportBtn"); setLoading(btn,true);
+  const recs = state.tabs[tabName].results;
+  let posted=0,failed=0,offline=0;
+  const updates=[];
+  for(const id of ids){
+    const rec = state.tabs[tabName].records.find(r=>r.id===id);
+    if(!rec) continue;
+    const cell=document.getElementById(pfx+"-status-"+id);
+    if(cell) cell.innerHTML=statusBadge("PENDING")+" <span class='muted-line'>posting…</span>";
+    const xml = TAB_XML_FN[tabName](rec);
+    const r = await postXmlToTally(xml);
+    recs[id]={request:xml,response:r.response,status:r.status};
+    await new Promise(res=>setTimeout(res,400)); // give Tally time to commit before next request
+    const view=`<button class="link-btn" onclick="viewTabResult('${tabName}','${id}')">view</button>`;
+    if(cell) cell.innerHTML=statusBadge(r.status)+" "+view;
+    if(r.status==="POSTED") posted++; else if(r.status==="CONNECTOR_OFFLINE") offline++; else failed++;
+    updates.push({transaction_id:id,status:r.status,tally_response:String(r.response||"").slice(0,2000)});
+  }
+  await saveStatuses(updates);
+  setLoading(btn,false);
+  const s=`${posted} posted, ${failed} failed`+(offline?`, ${offline} connector offline`:"");
+  document.getElementById(pfx+"-summary").textContent=s;
+  showToast(s,(offline||failed)?"error":"success");
+}
+
+function previewTab(tabName){
+  const pfx=TAB_PFX[tabName];
+  const recs=state.tabs[tabName].records;
+  if(!recs.length){ showToast("Fetch first","error"); return; }
+  const ids=selectedChecks(pfx);
+  const rec=recs.find(r=>r.id===(ids[0]||recs[0].id));
+  if(!rec) return;
+  const xml=TAB_XML_FN[tabName](rec);
+  showModal(`Preview XML — ${rec.id}`, xml, "(not sent yet — preview of request body)");
+}
+
+/* ============================================================
+   MODAL
+============================================================ */
+function showModal(title, req, resp){
+  document.getElementById("modalTitle").textContent=title;
+  document.getElementById("modalReq").textContent=req;
+  document.getElementById("modalResp").textContent=resp;
+  document.getElementById("modal").style.display="flex";
+}
+function closeModal(){ document.getElementById("modal").style.display="none"; }
+
+function viewTabResult(tabName, id){
+  const r=state.tabs[tabName].results[id]; if(!r) return;
+  showModal(`${tabName} ${id} — ${r.status}`, r.request||"(none)", r.response||"(none)");
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+(function init(){
+  document.getElementById("backendUrl").value=state.backendUrl;
+  document.getElementById("loginHotel").value=state.hotelCode||"";
+  if(state.token && state.backendUrl){
+    enterConfig();
+  } else {
+    showScreen("login");
+  }
+})();
+</script>
+</body>
+</html>

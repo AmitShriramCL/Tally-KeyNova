@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KeyNova × Tally Integration — Overview</title>
+<style>
+  :root {
+    --navy: #1B3A6B;
+    --blue: #2563EB;
+    --blue-light: #DBEAFE;
+    --blue-mid: #1D4ED8;
+    --teal: #0F766E;
+    --teal-light: #CCFBF1;
+    --amber: #D97706;
+    --amber-light: #FEF3C7;
+    --red: #DC2626;
+    --red-light: #FEE2E2;
+    --green: #16A34A;
+    --green-light: #DCFCE7;
+    --purple: #7C3AED;
+    --purple-light: #EDE9FE;
+    --gray-dark: #1F2937;
+    --gray-med: #6B7280;
+    --gray-light: #F9FAFB;
+    --gray-border: #E5E7EB;
+    --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F0F4F8;
+    color: var(--gray-dark);
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  .nav-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--navy);
+    padding: .75rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .nav-logo { color: white; font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+  .nav-logo span { color: #93C5FD; }
+  .nav-links { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav-link {
+    color: #CBD5E1; font-size: 12px; padding: 4px 10px;
+    border-radius: 12px; cursor: pointer; border: none; background: transparent;
+    transition: all .15s; white-space: nowrap;
+  }
+  .nav-link:hover { background: rgba(255,255,255,.1); color: white; }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #1E40AF 60%, #1D4ED8 100%);
+    color: white; padding: 4rem 2rem 5rem; text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(59,130,246,.3) 0%, transparent 60%);
+  }
+  .hero-content { position: relative; max-width: 760px; margin: 0 auto; }
+  .hero-badge {
+    display: inline-block; background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2); border-radius: 20px;
+    padding: 4px 14px; font-size: 12px; color: #93C5FD; margin-bottom: 1.2rem; letter-spacing: .04em;
+  }
+  .hero h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: .75rem; line-height: 1.15; }
+  .hero h1 span { color: #93C5FD; }
+  .hero p { font-size: 1.05rem; color: #BFDBFE; max-width: 560px; margin: 0 auto 2rem; }
+  .hero-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .hero-chip {
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    border-radius: 20px; padding: 5px 14px; font-size: 12px; color: white;
+  }
+
+  /* ── WAVE ── */
+  .wave { background: var(--navy); line-height: 0; }
+  .wave svg { display: block; }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  /* ── SECTIONS ── */
+  .section { margin-bottom: 4rem; scroll-margin-top: 70px; }
+  .section-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;
+    padding-bottom: 1rem; border-bottom: 2px solid var(--blue-light);
+  }
+  .section-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    flex-shrink: 0;
+  }
+  .section-title { font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+  .section-sub { font-size: .85rem; color: var(--gray-med); margin-top: 2px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: white; border-radius: 16px; padding: 1.5rem;
+    border: 1px solid var(--gray-border); margin-bottom: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .card-title { font-size: 1rem; font-weight: 600; color: var(--navy); margin-bottom: .5rem; }
+  .card p { font-size: .9rem; color: var(--gray-med); line-height: 1.7; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+
+  /* ── COMPONENT CARDS ── */
+  .comp-card {
+    background: white; border-radius: 16px; padding: 1.5rem;
+    border: 1px solid var(--gray-border);
+    box-shadow: 0 1px 4px rgba(0,0,0,.04); position: relative; overflow: hidden;
+  }
+  .comp-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  }
+  .cc-blue::before { background: var(--blue); }
+  .cc-amber::before { background: var(--amber); }
+  .cc-green::before { background: var(--green); }
+  .cc-purple::before { background: var(--purple); }
+  .comp-num {
+    width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 14px; font-weight: 700; margin-bottom: .75rem;
+  }
+  .comp-card .comp-title { font-size: 1rem; font-weight: 700; color: var(--gray-dark); margin-bottom: .25rem; }
+  .comp-card .comp-url { font-size: .75rem; font-family: monospace; color: var(--gray-med); margin-bottom: .75rem; }
+  .comp-card p { font-size: .875rem; color: var(--gray-med); line-height: 1.6; }
+  .comp-tag {
+    display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 10px;
+    font-weight: 500; margin-top: .75rem;
+  }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow-diagram {
+    background: white; border-radius: 16px; padding: 2rem;
+    border: 1px solid var(--gray-border); box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    margin-bottom: 1.5rem;
+  }
+  .flow-row {
+    display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+    justify-content: center; margin: .75rem 0;
+  }
+  .flow-node {
+    border-radius: 12px; padding: .6rem 1rem; text-align: center;
+    min-width: 120px; border: 1.5px solid;
+  }
+  .flow-node .fn-title { font-size: .8rem; font-weight: 600; }
+  .flow-node .fn-sub { font-size: .7rem; margin-top: 2px; opacity: .8; }
+  .flow-arrow {
+    padding: 0 8px; font-size: 1.2rem; color: var(--gray-med);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .flow-arrow .fa-lbl { font-size: .65rem; color: var(--gray-med); text-align: center; max-width: 70px; }
+  .fn-blue { background: var(--blue-light); border-color: var(--blue); color: var(--blue-mid); }
+  .fn-green { background: var(--green-light); border-color: var(--green); color: var(--teal); }
+  .fn-amber { background: var(--amber-light); border-color: var(--amber); color: #92400E; }
+  .fn-purple { background: var(--purple-light); border-color: var(--purple); color: var(--purple); }
+  .fn-gray { background: var(--gray-light); border-color: var(--gray-border); color: var(--gray-dark); }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-radius: 12px; padding: 1rem 1.25rem; margin: 1rem 0;
+    border-left: 4px solid; font-size: .875rem; line-height: 1.7;
+  }
+  .co-blue { background: var(--blue-light); border-color: var(--blue); color: var(--blue-mid); }
+  .co-green { background: var(--green-light); border-color: var(--green); color: #166534; }
+  .co-amber { background: var(--amber-light); border-color: var(--amber); color: #92400E; }
+  .co-red { background: var(--red-light); border-color: var(--red); color: #991B1B; }
+  .co-purple { background: var(--purple-light); border-color: var(--purple); color: var(--purple); }
+  .callout strong { font-weight: 600; }
+
+  /* ── TABLE ── */
+  .tbl-wrap {
+    background: white; border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--gray-border); box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    margin-bottom: 1.5rem;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  thead { background: var(--navy); }
+  thead th { color: white; padding: .75rem 1rem; text-align: left; font-weight: 600; font-size: .8rem; letter-spacing: .03em; }
+  tbody tr { border-bottom: 1px solid var(--gray-border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--gray-light); }
+  tbody td { padding: .7rem 1rem; color: var(--gray-dark); vertical-align: top; }
+  tbody td:first-child { font-weight: 500; }
+
+  /* ── STEP TIMELINE ── */
+  .timeline { position: relative; padding-left: 2.5rem; }
+  .timeline::before {
+    content: ''; position: absolute; left: 15px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--blue), var(--blue-light));
+    border-radius: 2px;
+  }
+  .tl-item { position: relative; margin-bottom: 1.5rem; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-dot {
+    position: absolute; left: -2rem; top: .2rem;
+    width: 28px; height: 28px; border-radius: 50%; background: white;
+    border: 2px solid var(--blue); display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 700; color: var(--blue);
+    box-shadow: 0 2px 6px rgba(37,99,235,.2); z-index: 1;
+  }
+  .tl-dot.done { background: var(--green); border-color: var(--green); color: white; }
+  .tl-content {
+    background: white; border-radius: 12px; padding: 1rem 1.25rem;
+    border: 1px solid var(--gray-border); box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .tl-title { font-size: .95rem; font-weight: 600; color: var(--navy); margin-bottom: .3rem; }
+  .tl-who {
+    display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 10px;
+    font-weight: 500; margin-bottom: .5rem;
+  }
+  .tl-content p { font-size: .85rem; color: var(--gray-med); line-height: 1.6; }
+  .tl-content ul { font-size: .85rem; color: var(--gray-med); padding-left: 1.2rem; margin-top: .3rem; }
+  .tl-content li { margin-bottom: .2rem; }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block; font-size: .7rem; padding: 3px 10px; border-radius: 12px; font-weight: 500;
+  }
+  .b-blue { background: var(--blue-light); color: var(--blue-mid); }
+  .b-green { background: var(--green-light); color: #166534; }
+  .b-amber { background: var(--amber-light); color: #92400E; }
+  .b-red { background: var(--red-light); color: var(--red); }
+  .b-purple { background: var(--purple-light); color: var(--purple); }
+  .b-gray { background: var(--gray-light); color: var(--gray-med); border: 1px solid var(--gray-border); }
+
+  /* ── MAPPING VISUAL ── */
+  .mapping-row {
+    display: flex; align-items: center; gap: 8px; padding: .6rem .75rem;
+    background: white; border-radius: 10px; border: 1px solid var(--gray-border);
+    margin-bottom: 6px; font-size: .85rem;
+  }
+  .map-left { flex: 1; color: var(--gray-dark); font-weight: 500; }
+  .map-arrow { color: var(--gray-med); font-size: 16px; }
+  .map-right { flex: 1; color: var(--blue-mid); font-weight: 500; font-size: .8rem; }
+  .map-type { font-size: .7rem; color: var(--gray-med); }
+
+  /* ── SCREEN MOCKUP ── */
+  .screen-mock {
+    background: white; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--gray-border); box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    margin: 1rem 0;
+  }
+  .sm-bar {
+    background: var(--navy); padding: .5rem .75rem;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sm-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .sm-url {
+    background: rgba(255,255,255,.1); border-radius: 4px; padding: 2px 10px;
+    font-size: .7rem; color: #93C5FD; font-family: monospace; flex: 1;
+  }
+  .sm-body { padding: 1rem; }
+  .sm-field {
+    margin-bottom: .5rem;
+  }
+  .sm-label { font-size: .7rem; color: var(--gray-med); margin-bottom: 2px; }
+  .sm-input {
+    border: 1px solid var(--gray-border); border-radius: 6px; padding: .35rem .6rem;
+    font-size: .8rem; width: 100%; color: var(--gray-dark); background: var(--gray-light);
+  }
+  .sm-btn {
+    background: var(--blue); color: white; border: none; border-radius: 8px;
+    padding: .4rem 1rem; font-size: .8rem; font-weight: 600; cursor: pointer;
+    margin-top: .25rem;
+  }
+
+  /* ── STATUS ROW ── */
+  .status-row {
+    display: flex; align-items: center; gap: 10px; padding: .6rem .75rem;
+    border-bottom: 1px solid var(--gray-border); font-size: .8rem;
+  }
+  .status-row:last-child { border-bottom: none; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .st-green { background: var(--green); }
+  .st-amber { background: var(--amber); }
+  .st-gray { background: #CBD5E1; }
+  .st-red { background: var(--red); }
+  .sr-name { flex: 1; font-weight: 500; color: var(--gray-dark); }
+  .sr-amount { color: var(--gray-med); min-width: 80px; text-align: right; }
+  .sr-status { font-size: .7rem; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+
+  /* ── ANALOGY BOX ── */
+  .analogy {
+    background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
+    border: 1px solid #BAE6FD; border-radius: 16px; padding: 1.5rem; margin: 1rem 0;
+  }
+  .analogy .a-title { font-size: .85rem; font-weight: 700; color: #0369A1; margin-bottom: .5rem; }
+  .analogy p { font-size: .875rem; color: #0C4A6E; line-height: 1.7; }
+
+  /* ── EXAMPLE STORY ── */
+  .story-card {
+    background: linear-gradient(to bottom right, #FFFBEB, #FEF3C7);
+    border: 1px solid #FDE68A; border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem;
+  }
+  .story-card .s-phase {
+    font-size: .7rem; font-weight: 700; color: #92400E; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .4rem;
+  }
+  .story-card .s-title { font-size: 1.1rem; font-weight: 700; color: #78350F; margin-bottom: .5rem; }
+  .story-card p { font-size: .875rem; color: #92400E; line-height: 1.7; }
+  .story-card ul { font-size: .875rem; color: #92400E; padding-left: 1.2rem; margin-top: .3rem; }
+  .story-card li { margin-bottom: .3rem; }
+
+  /* ── WHO DOES WHAT ── */
+  .who-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .who-card {
+    border-radius: 16px; padding: 1.25rem;
+    border: 1px solid var(--gray-border); background: white;
+  }
+  .who-avatar {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    margin-bottom: .75rem;
+  }
+  .who-card .wc-role { font-size: .8rem; font-weight: 700; color: var(--gray-med); text-transform: uppercase; letter-spacing: .04em; margin-bottom: .25rem; }
+  .who-card .wc-name { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: .75rem; }
+  .who-card ul { list-style: none; padding: 0; }
+  .who-card li { font-size: .83rem; color: var(--gray-med); padding: .25rem 0; border-bottom: 1px solid var(--gray-border); display: flex; align-items: flex-start; gap: 6px; }
+  .who-card li:last-child { border-bottom: none; }
+  .who-card li::before { content: '→'; color: var(--blue); font-weight: 700; margin-top: 1px; flex-shrink: 0; }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--navy); color: #94A3B8; text-align: center; padding: 2rem;
+    font-size: .8rem; margin-top: 2rem;
+  }
+  .footer strong { color: white; }
+
+  /* ── UTIL ── */
+  p { font-size: .9rem; color: var(--gray-med); line-height: 1.7; margin-bottom: .75rem; }
+  h4 { font-size: .95rem; font-weight: 600; color: var(--navy); margin-bottom: .5rem; margin-top: 1rem; }
+  .mt1 { margin-top: 1rem; }
+  .mb1 { margin-bottom: 1rem; }
+  code { font-family: monospace; font-size: .8rem; background: var(--gray-light); padding: 2px 6px; border-radius: 4px; color: var(--blue-mid); }
+
+  @media(max-width:680px){
+    .grid-3,.grid-2,.who-grid{ grid-template-columns:1fr; }
+    .hero h1{ font-size:1.8rem; }
+    .flow-row{ flex-direction:column; }
+    .nav-links{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav-bar">
+  <div class="nav-logo">Key<span>Nova</span> × Tally</div>
+  <div class="nav-links">
+    <button class="nav-link" onclick="document.getElementById('what').scrollIntoView({behavior:'smooth'})">What we're building</button>
+    <button class="nav-link" onclick="document.getElementById('components').scrollIntoView({behavior:'smooth'})">Components</button>
+    <button class="nav-link" onclick="document.getElementById('who').scrollIntoView({behavior:'smooth'})">Who does what</button>
+    <button class="nav-link" onclick="document.getElementById('setup').scrollIntoView({behavior:'smooth'})">Setup journey</button>
+    <button class="nav-link" onclick="document.getElementById('mapping').scrollIntoView({behavior:'smooth'})">Ledger mapping</button>
+    <button class="nav-link" onclick="document.getElementById('daily').scrollIntoView({behavior:'smooth'})">Daily use</button>
+    <button class="nav-link" onclick="document.getElementById('example').scrollIntoView({behavior:'smooth'})">Full example</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Integration Documentation</div>
+    <h1>KeyNova PMS + Tally<br><span>Integration</span></h1>
+    <p>How we connect KeyNova's cloud-based Property Management System with Tally accounting software — so properties never have to manually re-enter financial data.</p>
+    <div class="hero-chips">
+      <div class="hero-chip">🏨 Hotel PMS & POS</div>
+      <div class="hero-chip">↔</div>
+      <div class="hero-chip">📊 Tally Accounting</div>
+      <div class="hero-chip">Manual export, zero re-entry</div>
+    </div>
+  </div>
+</div>
+<div class="wave" style="background:#F0F4F8"><svg viewBox="0 0 1440 40" xmlns="http://www.w3.org/2000/svg"><path fill="#1B3A6B" d="M0,40 L0,0 Q360,40 720,20 Q1080,0 1440,30 L1440,40 Z"/></svg></div>
+
+<div class="page">
+
+<!-- ════════════════════════════════════════════
+     SECTION 1 — THE PROBLEM
+════════════════════════════════════════════ -->
+<div class="section" id="what">
+  <div class="section-header">
+    <div class="section-icon" style="background:#DBEAFE">🎯</div>
+    <div>
+      <div class="section-title">What Problem Are We Solving?</div>
+      <div class="section-sub">Why this integration exists</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card" style="border-top: 3px solid var(--red)">
+      <div class="card-title">❌ Without Integration</div>
+      <p>Every day, the property accountant opens TallyPrime and manually types in every room charge, every payment received, every POS bill — one by one. For a 50-room hotel with 100+ daily transactions, this takes 2–3 hours of manual work. Mistakes happen. Data is always a day behind.</p>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--green)">
+      <div class="card-title">✅ With Integration</div>
+      <p>The accountant opens the KeyNova Tally Interface, selects yesterday's date, clicks Fetch, selects all transactions, and clicks Export. Tally is updated in under a minute. No typing, no mistakes, real-time accuracy.</p>
+    </div>
+  </div>
+
+  <div class="analogy">
+    <div class="a-title">Simple analogy</div>
+    <p>Think of KeyNova PMS as the hotel's <strong>operations register</strong> — it records every room sold, every meal ordered, every payment received. Tally is the hotel's <strong>accounting ledger</strong> — where the finance team does their work. Without integration, someone has to physically copy every entry from the operations register into the accounting ledger. Our integration automates that copy — accountant just reviews and approves.</p>
+  </div>
+
+  <div class="callout co-blue">
+    <strong>Important:</strong> This is NOT a fully automatic integration. The accountant manually triggers the export whenever they want — daily, weekly, or any schedule they prefer. They are always in control of what goes into Tally.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 2 — TWO WORLDS
+════════════════════════════════════════════ -->
+<div class="section" id="components">
+  <div class="section-header">
+    <div class="section-icon" style="background:#DCFCE7">🧩</div>
+    <div>
+      <div class="section-title">What We Are Building</div>
+      <div class="section-sub">Three components — who owns what</div>
+    </div>
+  </div>
+
+  <p>The integration has three parts. Two live on the cloud, one lives on the hotel's PC alongside Tally.</p>
+
+  <div class="grid-3">
+    <div class="comp-card cc-blue">
+      <div class="comp-num" style="background:#DBEAFE;color:#1D4ED8">1</div>
+      <div class="comp-title">KeyNova PMS & POS</div>
+      <div class="comp-url">app.keynova.com</div>
+      <p>The existing system. Manages rooms, guests, billing, and POS outlets. It is the <strong>source of truth</strong> for all transactions. We add new API endpoints here so KTI can fetch data.</p>
+      <span class="comp-tag" style="background:#DBEAFE;color:#1D4ED8">Already exists — we add APIs</span>
+    </div>
+    <div class="comp-card cc-amber">
+      <div class="comp-num" style="background:#FEF3C7;color:#D97706">2</div>
+      <div class="comp-title">KeyNova Tally Interface (KTI)</div>
+      <div class="comp-url">tally.keynova.com</div>
+      <p>A new, separate web application we build. This is what the accountant opens in their browser. It has a setup area (one-time) and a transactions area (daily use). Think of it as the control panel for Tally integration.</p>
+      <span class="comp-tag" style="background:#FEF3C7;color:#D97706">New — we build this</span>
+    </div>
+    <div class="comp-card cc-green">
+      <div class="comp-num" style="background:#DCFCE7;color:#16A34A">3</div>
+      <div class="comp-title">KeyNova Tally Connector (KTC)</div>
+      <div class="comp-url">localhost:9988 on hotel PC</div>
+      <p>A tiny background program that runs on the hotel's Windows PC — the same machine as Tally. It acts as a bridge so the KTI web app can talk to Tally. Installs once, runs forever silently in the background.</p>
+      <span class="comp-tag" style="background:#DCFCE7;color:#16A34A">New — hotel installs once</span>
+    </div>
+  </div>
+
+  <h4>How the three components connect</h4>
+  <div class="flow-diagram">
+    <div style="text-align:center;font-size:.75rem;color:var(--gray-med);margin-bottom:1rem">☁ Cloud &nbsp;|&nbsp; Everything above the line runs on KeyNova's servers</div>
+    <div class="flow-row">
+      <div class="flow-node fn-blue" style="min-width:140px">
+        <div class="fn-title">KeyNova PMS/POS</div>
+        <div class="fn-sub">app.keynova.com</div>
+      </div>
+      <div class="flow-arrow">
+        <div>↔</div>
+        <div class="fa-lbl">REST API (transaction data)</div>
+      </div>
+      <div class="flow-node fn-amber" style="min-width:140px">
+        <div class="fn-title">KTI Web App</div>
+        <div class="fn-sub">tally.keynova.com</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin:.5rem 0">
+      <div style="font-size:1.2rem;color:var(--gray-med)">↕</div>
+      <div style="font-size:.7rem;color:var(--gray-med)">Accountant's browser (JavaScript) talks down to hotel PC</div>
+    </div>
+    <div style="border-top:2px dashed var(--gray-border);padding-top:1rem;margin-top:.5rem">
+      <div style="text-align:center;font-size:.75rem;color:var(--gray-med);margin-bottom:1rem">🖥 Hotel's PC &nbsp;|&nbsp; Everything below runs on the hotel's Windows machine</div>
+      <div class="flow-row">
+        <div class="flow-node fn-amber" style="min-width:140px">
+          <div class="fn-title">KTC Connector</div>
+          <div class="fn-sub">localhost:9988</div>
+        </div>
+        <div class="flow-arrow">
+          <div>→</div>
+          <div class="fa-lbl">Tally XML (same machine)</div>
+        </div>
+        <div class="flow-node fn-green" style="min-width:140px">
+          <div class="fn-title">TallyPrime</div>
+          <div class="fn-sub">localhost:9000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout co-amber">
+    <strong>Why is the KTC connector needed?</strong> The browser has a security rule — it won't show your code a server's response unless that server explicitly says "yes, you're allowed to read this." Tally (old software) doesn't say this. KTC is a tiny middleman that sits between the browser and Tally, forwards the request, and adds that permission stamp to Tally's response before giving it back to the browser. That's literally all it does.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 3 — WHO DOES WHAT
+════════════════════════════════════════════ -->
+<div class="section" id="who">
+  <div class="section-header">
+    <div class="section-icon" style="background:#EDE9FE">👥</div>
+    <div>
+      <div class="section-title">Who Does What</div>
+      <div class="section-sub">Roles and responsibilities</div>
+    </div>
+  </div>
+
+  <div class="who-grid">
+    <div class="who-card" style="border-top:3px solid var(--blue)">
+      <div class="who-avatar" style="background:#DBEAFE">👨‍💻</div>
+      <div class="wc-role">KeyNova Team</div>
+      <div class="wc-name">Developer / Product</div>
+      <ul>
+        <li>Build the KTI web application</li>
+        <li>Add transaction API endpoints to KeyNova PMS</li>
+        <li>Build and package the KTC connector installer</li>
+        <li>Maintain and update the integration</li>
+      </ul>
+    </div>
+    <div class="who-card" style="border-top:3px solid var(--amber)">
+      <div class="who-avatar" style="background:#FEF3C7">🏨</div>
+      <div class="wc-role">Property</div>
+      <div class="wc-name">Hotel Manager / IT</div>
+      <ul>
+        <li>Set up property on KeyNova PMS</li>
+        <li>Configure rooms, rate plans, payment methods</li>
+        <li>Install KTC connector on their Tally PC</li>
+        <li>Enter Tally connection details in KTI</li>
+      </ul>
+    </div>
+    <div class="who-card" style="border-top:3px solid var(--green)">
+      <div class="who-avatar" style="background:#DCFCE7">🧮</div>
+      <div class="wc-role">Property</div>
+      <div class="wc-name">Accountant (Mr. Ramesh)</div>
+      <ul>
+        <li>Create all ledgers in TallyPrime first</li>
+        <li>Do the one-time ledger mapping in KTI</li>
+        <li>Export transactions to Tally daily/weekly</li>
+        <li>Fix any errors (wrong ledger names etc.)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Task</th><th>Who</th><th>When</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td>Build KTI web app</td><td><span class="badge b-blue">KeyNova Dev</span></td><td>One-time</td><td>KeyNova's servers</td></tr>
+        <tr><td>Create rooms, rate plans, extra charges in PMS</td><td><span class="badge b-amber">Hotel Manager</span></td><td>On onboarding</td><td>KeyNova PMS</td></tr>
+        <tr><td>Create ledger accounts in TallyPrime</td><td><span class="badge b-green">Accountant</span></td><td>Before KTI setup</td><td>TallyPrime software</td></tr>
+        <tr><td>Install KTC connector</td><td><span class="badge b-amber">Hotel IT</span></td><td>One-time setup</td><td>Hotel's Windows PC</td></tr>
+        <tr><td>Connect Tally in KTI (company name, IP, port)</td><td><span class="badge b-green">Accountant</span></td><td>One-time setup</td><td>KTI web app</td></tr>
+        <tr><td>Map KeyNova entities to Tally ledger names</td><td><span class="badge b-green">Accountant</span></td><td>One-time setup</td><td>KTI web app</td></tr>
+        <tr><td>Export transactions to Tally</td><td><span class="badge b-green">Accountant</span></td><td>Daily / weekly</td><td>KTI web app</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 4 — HOW PMS AND KTI CONNECT
+════════════════════════════════════════════ -->
+<div class="section" id="connect">
+  <div class="section-header">
+    <div class="section-icon" style="background:#CCFBF1">🔗</div>
+    <div>
+      <div class="section-title">How KeyNova PMS and KTI Connect</div>
+      <div class="section-sub">Authentication and data access</div>
+    </div>
+  </div>
+
+  <p>KTI is a completely separate web application from KeyNova PMS. It connects to PMS using standard login credentials — so the accountant doesn't need a separate account. The same username and password they use for KeyNova PMS works on KTI.</p>
+
+  <div class="grid-2">
+    <div>
+      <h4>Login screen on KTI</h4>
+      <div class="screen-mock">
+        <div class="sm-bar">
+          <div class="sm-dot" style="background:#FF5F56"></div>
+          <div class="sm-dot" style="background:#FFBD2E"></div>
+          <div class="sm-dot" style="background:#27C93F"></div>
+          <div class="sm-url">tally.keynova.com/login</div>
+        </div>
+        <div class="sm-body">
+          <div style="text-align:center;margin-bottom:1rem">
+            <div style="font-size:1rem;font-weight:700;color:#1B3A6B">KeyNova Tally Interface</div>
+            <div style="font-size:.75rem;color:#6B7280">Powered by KeyNova</div>
+          </div>
+          <div class="sm-field"><div class="sm-label">Property Code</div><div class="sm-input">KN-1001</div></div>
+          <div class="sm-field"><div class="sm-label">Username</div><div class="sm-input">ramesh@grandpalace.com</div></div>
+          <div class="sm-field"><div class="sm-label">Password</div><div class="sm-input">••••••••</div></div>
+          <button class="sm-btn" style="width:100%">Login to KTI</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h4>What happens behind the scenes</h4>
+      <div class="timeline" style="margin-top:.5rem">
+        <div class="tl-item">
+          <div class="tl-dot">1</div>
+          <div class="tl-content">
+            <div class="tl-title">Accountant enters credentials on KTI</div>
+            <p>Same username and password as KeyNova PMS.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">2</div>
+          <div class="tl-content">
+            <div class="tl-title">KTI calls KeyNova PMS login API</div>
+            <p>KTI sends the credentials to KeyNova's server. KeyNova verifies them and returns a session token.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">3</div>
+          <div class="tl-content">
+            <div class="tl-title">KTI stores the token in the browser</div>
+            <p>From this point, every time KTI fetches transaction data, it uses this token to prove it's authorised.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot done">✓</div>
+          <div class="tl-content">
+            <div class="tl-title">Accountant is logged in — KTI dashboard opens</div>
+            <p>All their property's transaction data is now accessible to KTI via the KeyNova API.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout co-blue">
+    <strong>One login, two apps:</strong> The accountant uses the same KeyNova credentials on both apps. From KeyNova's perspective, KTI is just another client application calling its API — exactly like how a mobile app and a web app can both be logged into the same account.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 5 — ONE-TIME SETUP JOURNEY
+════════════════════════════════════════════ -->
+<div class="section" id="setup">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEF3C7">⚙️</div>
+    <div>
+      <div class="section-title">The One-Time Setup Journey</div>
+      <div class="section-sub">Done once per property — takes about 30–60 minutes</div>
+    </div>
+  </div>
+
+  <div class="callout co-amber">
+    <strong>Prerequisites before starting setup:</strong> The accountant must have already created all the required ledger accounts in TallyPrime (Room Rent, GST accounts, City Ledger accounts for OTAs, Payment type accounts etc.). KTI cannot create Tally ledgers — it only posts data to ledgers that already exist.
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot">1</div>
+      <div class="tl-content">
+        <div class="tl-title">Step 1 — Connect to Tally</div>
+        <span class="tl-who" style="background:#DCFCE7;color:#166534">Accountant does this</span>
+        <p>Enter the Tally company name (must match exactly as it appears in TallyPrime), the Tally server address, and port. For a local PC, the address is <code>localhost</code> and port is <code>9000</code>.</p>
+        <div class="callout co-blue" style="margin-top:.5rem;font-size:.8rem">
+          <strong>Company name must be exact.</strong> If TallyPrime shows "Hotel Grand Palace Pvt. Ltd" — that exact text, same capitalisation, same spacing — is what you enter. A single character difference means Tally will reject every post.
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot">2</div>
+      <div class="tl-content">
+        <div class="tl-title">Step 2 — Install the KTC Connector</div>
+        <span class="tl-who" style="background:#DBEAFE;color:#1D4ED8">Hotel IT does this</span>
+        <p>KTI shows a download button for the KeyNova Tally Connector installer. Download and run it on the same Windows PC where TallyPrime is installed. It installs as a background Windows service — starts automatically on every reboot. After installation, KTI shows a green <span class="badge b-green">Connector Online</span> badge confirming it's working.</p>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot">3</div>
+      <div class="tl-content">
+        <div class="tl-title">Step 3 — Choose Recording Mode & Settings</div>
+        <span class="tl-who" style="background:#DCFCE7;color:#166534">Accountant decides</span>
+        <p>Choose how room revenue should be recorded in Tally. Three options:</p>
+        <ul>
+          <li><strong>Day-wise (recommended):</strong> Each night's room charge is posted as a separate entry on that exact date.</li>
+          <li><strong>Checkout-wise:</strong> All nights of a stay are posted together on the checkout date.</li>
+          <li><strong>Summarized:</strong> Everything for a stay is merged into one single entry.</li>
+        </ul>
+        <p style="margin-top:.4rem">Also set the Place of Supply (state) — this determines whether GST is split as CGST + SGST (same state) or IGST (different state).</p>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot">4</div>
+      <div class="tl-content">
+        <div class="tl-title">Step 4 — Configure Voucher Types</div>
+        <span class="tl-who" style="background:#DCFCE7;color:#166534">Accountant does this</span>
+        <p>Properties often create custom voucher registers in TallyPrime per financial year — like "FD Sales 24-25" instead of just "Sales". This step maps each KeyNova transaction type to the exact Tally voucher type name the accountant has set up.</p>
+        <div class="tbl-wrap" style="margin-top:.75rem">
+          <table>
+            <thead><tr><th>Transaction type</th><th>Tally Voucher Name entered</th></tr></thead>
+            <tbody>
+              <tr><td>Room Sales</td><td>FD Sales 24-25</td></tr>
+              <tr><td>Receipts &amp; Payments</td><td>FD Receipt 24-25</td></tr>
+              <tr><td>Journal entries</td><td>FD Journal 24-25</td></tr>
+              <tr><td>POS Sales</td><td>POS Sales 24-25</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot done">5</div>
+      <div class="tl-content">
+        <div class="tl-title">Step 5 — Ledger Mapping (most important step)</div>
+        <span class="tl-who" style="background:#DCFCE7;color:#166534">Accountant does this</span>
+        <p>This is covered in detail in the next section. Every item from KeyNova (payment method, tax type, extra charge, booking source) is mapped to its corresponding ledger name in Tally. This is a one-time table that the accountant fills in once and rarely changes.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 6 — LEDGER MAPPING
+════════════════════════════════════════════ -->
+<div class="section" id="mapping">
+  <div class="section-header">
+    <div class="section-icon" style="background:#EDE9FE">🗂️</div>
+    <div>
+      <div class="section-title">How Ledger Mapping Works</div>
+      <div class="section-sub">The most important configuration step</div>
+    </div>
+  </div>
+
+  <p>KeyNova and Tally use different names for the same concepts. Ledger mapping is the dictionary that tells KTI: "when you see this from KeyNova, use this ledger name in Tally." This is done once and stays saved.</p>
+
+  <div class="analogy">
+    <div class="a-title">Simple analogy</div>
+    <p>Imagine KeyNova calls a payment method "Card" but the accountant created a ledger in Tally called "Credit Card Receipts". Without mapping, KTI wouldn't know they're the same thing. The mapping table is just: <strong>KeyNova name → Tally ledger name</strong>. One line per entity.</p>
+  </div>
+
+  <h4>How KTI auto-populates the mapping table</h4>
+  <p>Instead of asking the accountant to type everything from scratch, KTI automatically fetches all the entities the property has configured in KeyNova PMS — all their payment methods, extra charge types, tax codes, booking sources, POS categories — and lists them. The accountant only needs to fill in the right-hand column: the matching Tally ledger name.</p>
+
+  <div class="card mt1">
+    <div class="card-title">Ledger Mapping table — what the accountant sees and fills in</div>
+    <div style="margin-top:.75rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px;font-size:.7rem;font-weight:600;color:var(--gray-med);text-transform:uppercase;letter-spacing:.04em;padding:0 .75rem">
+        <span>KeyNova Entity</span><span>Type</span><span>Tally Ledger Name (accountant types this)</span>
+      </div>
+      <div class="mapping-row">
+        <span class="map-left">Cash</span>
+        <span class="map-type"><span class="badge b-gray">Payment Method</span></span>
+        <span class="map-right">💬 Cash</span>
+      </div>
+      <div class="mapping-row">
+        <span class="map-left">Card</span>
+        <span class="map-type"><span class="badge b-gray">Payment Method</span></span>
+        <span class="map-right">💬 Credit Card Receipts</span>
+      </div>
+      <div class="mapping-row">
+        <span class="map-left">UPI</span>
+        <span class="map-type"><span class="badge b-gray">Payment Method</span></span>
+        <span class="map-right">💬 UPI Receipts</span>
+      </div>
+      <div class="mapping-row">
+        <span class="map-left">Bank Transfer</span>
+        <span class="map-type"><span class="badge b-gray">Payment Method</span></span>
+        <span class="map-right">💬 Bank Transfer</span>
+      </div>
+      <div class="mapping-row" style="background:#F0FDF4">
+        <span class="map-left">Extra Bed</span>
+        <span class="map-type"><span class="badge b-green">Extra Charge</span></span>
+        <span class="map-right">💬 Extra Bed Charge</span>
+      </div>
+      <div class="mapping-row" style="background:#F0FDF4">
+        <span class="map-left">Mini Bar</span>
+        <span class="map-type"><span class="badge b-green">Extra Charge</span></span>
+        <span class="map-right">💬 Mini Bar Revenue</span>
+      </div>
+      <div class="mapping-row" style="background:#EFF6FF">
+        <span class="map-left">CGST @ 6%</span>
+        <span class="map-type"><span class="badge b-blue">Tax</span></span>
+        <span class="map-right">💬 CGST Output @6%</span>
+      </div>
+      <div class="mapping-row" style="background:#EFF6FF">
+        <span class="map-left">SGST @ 6%</span>
+        <span class="map-type"><span class="badge b-blue">Tax</span></span>
+        <span class="map-right">💬 SGST Output @6%</span>
+      </div>
+      <div class="mapping-row" style="background:#FDF4FF">
+        <span class="map-left">Booking.com</span>
+        <span class="map-type"><span class="badge b-purple">City Ledger</span></span>
+        <span class="map-right">💬 Booking.com</span>
+      </div>
+      <div class="mapping-row" style="background:#FDF4FF">
+        <span class="map-left">MakeMyTrip</span>
+        <span class="map-type"><span class="badge b-purple">City Ledger</span></span>
+        <span class="map-right">💬 MakeMyTrip</span>
+      </div>
+    </div>
+    <p style="margin-top:.75rem;font-size:.8rem">💬 = accountant types this. Everything on the left was auto-fetched from KeyNova PMS.</p>
+  </div>
+
+  <div class="callout co-red">
+    <strong>The #1 rule:</strong> The Tally ledger name the accountant types here must match EXACTLY what exists in TallyPrime — same spelling, same capitalisation, same spacing. If it doesn't match, Tally will create a new wrong ledger instead of posting to the right one. Always verify against TallyPrime's ledger list.
+  </div>
+
+  <h4>What happens when a new payment method is added later?</h4>
+  <p>If the hotel adds a new payment method in KeyNova PMS (e.g. "Cheque"), that new entity will appear on the mapping table the next time the accountant visits. They just add the Tally ledger name for it and save. Everything already mapped continues to work unchanged.</p>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 7 — DAILY USE
+════════════════════════════════════════════ -->
+<div class="section" id="daily">
+  <div class="section-header">
+    <div class="section-icon" style="background:#DCFCE7">📅</div>
+    <div>
+      <div class="section-title">Daily Use — The Accountant's Workflow</div>
+      <div class="section-sub">After setup is done — what happens every day</div>
+    </div>
+  </div>
+
+  <p>Once setup is complete, the accountant's daily routine with KTI is simple. The whole process for a busy hotel takes under 5 minutes.</p>
+
+  <div class="grid-2">
+    <div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot">1</div>
+          <div class="tl-content">
+            <div class="tl-title">Open KTI and log in</div>
+            <p>Open <code>tally.keynova.com</code> in the browser on the Tally PC. Log in with KeyNova credentials. Takes 10 seconds.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">2</div>
+          <div class="tl-content">
+            <div class="tl-title">Go to a transaction type</div>
+            <p>Click on Sales, or Receipts, or Payments, or Journal — whichever they want to post today.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">3</div>
+          <div class="tl-content">
+            <div class="tl-title">Select date range and click Fetch</div>
+            <p>Enter yesterday's date (or any date range). Click Fetch. KTI calls KeyNova API and shows all transactions for that period.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">4</div>
+          <div class="tl-content">
+            <div class="tl-title">Select All → Export to Tally</div>
+            <p>Click the Select All checkbox. Click Export to Tally. KTI builds the XML vouchers and sends them to Tally through the KTC connector.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot done">✓</div>
+          <div class="tl-content">
+            <div class="tl-title">See results — repeat for other types</div>
+            <p>Each row shows Posted Successfully or an error. Then repeat for Receipts, Payments, Journals.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h4>Transaction types in KTI</h4>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Tab</th><th>What it contains</th></tr></thead>
+          <tbody>
+            <tr><td>Sales</td><td>Room charges — every night a guest occupies a room</td></tr>
+            <tr><td>Receipts</td><td>All payments received — advance deposits, guest payments, OTA settlements</td></tr>
+            <tr><td>Payments</td><td>Money going out — paid-outs, refunds</td></tr>
+            <tr><td>Journal</td><td>Transfer entries — advance to AR, city ledger transfers</td></tr>
+            <tr><td>POS Sales</td><td>Restaurant and outlet bills</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 style="margin-top:1rem">What the transactions screen looks like</h4>
+      <div class="screen-mock">
+        <div class="sm-bar">
+          <div class="sm-dot" style="background:#FF5F56"></div>
+          <div class="sm-dot" style="background:#FFBD2E"></div>
+          <div class="sm-dot" style="background:#27C93F"></div>
+          <div class="sm-url">tally.keynova.com/transactions/sales</div>
+        </div>
+        <div class="sm-body">
+          <div style="font-size:.75rem;font-weight:600;color:#1B3A6B;margin-bottom:.5rem">PMS Transactions — Sales</div>
+          <div style="display:flex;gap:6px;margin-bottom:.6rem">
+            <div class="sm-input" style="width:auto;padding:.25rem .5rem;font-size:.7rem">04-Apr-2025</div>
+            <div style="font-size:.7rem;color:#6B7280;padding:.25rem 0">to</div>
+            <div class="sm-input" style="width:auto;padding:.25rem .5rem;font-size:.7rem">04-Apr-2025</div>
+            <button class="sm-btn" style="padding:.25rem .6rem;font-size:.7rem">Fetch</button>
+          </div>
+          <div class="status-row" style="background:#F0FDF4;font-weight:600;font-size:.75rem;color:#166534">
+            <input type="checkbox" checked style="margin-right:4px"> <span>Select All — 11 records found</span>
+            <button class="sm-btn" style="margin-left:auto;padding:.2rem .6rem;font-size:.7rem">Export to Tally</button>
+          </div>
+          <div class="status-row">
+            <div class="status-dot st-green"></div>
+            <span class="sr-name">Yogasen Naidoo — Room 301</span>
+            <span class="sr-amount">₹2,800</span>
+            <span class="sr-status" style="background:#DCFCE7;color:#166534">Posted ✓</span>
+          </div>
+          <div class="status-row">
+            <div class="status-dot st-green"></div>
+            <span class="sr-name">Priya Sharma — Room 204</span>
+            <span class="sr-amount">₹4,720</span>
+            <span class="sr-status" style="background:#DCFCE7;color:#166534">Posted ✓</span>
+          </div>
+          <div class="status-row">
+            <div class="status-dot st-red"></div>
+            <span class="sr-name">Ahmed Khan — Room 115</span>
+            <span class="sr-amount">₹3,540</span>
+            <span class="sr-status" style="background:#FEE2E2;color:#991B1B">Ledger error</span>
+          </div>
+          <div class="status-row">
+            <div class="status-dot st-green"></div>
+            <span class="sr-name">Sneha Patel — Room 402</span>
+            <span class="sr-amount">₹5,900</span>
+            <span class="sr-status" style="background:#DCFCE7;color:#166534">Posted ✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4>What happens if a row shows an error?</h4>
+  <div class="grid-2">
+    <div class="card" style="border-top:3px solid var(--red)">
+      <div class="card-title">Common error: "Ledger not found"</div>
+      <p>Tally couldn't find the ledger name KTI sent. Usually means a typo in the Account Mapping. The accountant fixes the ledger name in KTI's mapping settings and re-exports that row.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--amber)">
+      <div class="card-title">Common error: "Connector offline"</div>
+      <p>The KTC connector service on the hotel's PC has stopped running (PC was restarted and service didn't start). The accountant restarts the KTC Windows service and tries again.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 8 — END TO END EXAMPLE
+════════════════════════════════════════════ -->
+<div class="section" id="example">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEF3C7">📖</div>
+    <div>
+      <div class="section-title">End-to-End Example</div>
+      <div class="section-sub">Hotel Grand Palace — from onboarding to first Tally export</div>
+    </div>
+  </div>
+
+  <p>Let's follow Hotel Grand Palace — a 50-room hotel in Gujarat — from the moment they sign up on KeyNova to the moment their first transactions appear in TallyPrime.</p>
+
+  <!-- PHASE 1 -->
+  <div class="story-card">
+    <div class="s-phase">Phase 1</div>
+    <div class="s-title">🏨 Hotel Grand Palace signs up on KeyNova PMS</div>
+    <p>The hotel manager creates an account on KeyNova PMS and sets up their property:</p>
+    <ul>
+      <li>Property name: Hotel Grand Palace, location: Surat, Gujarat</li>
+      <li>Rooms configured: 50 rooms across three types — Standard, Deluxe, Suite</li>
+      <li>Rate plans set: Best Available Rate, OTA Rate, Corporate Rate</li>
+      <li>Extra charges defined: Extra Bed (₹1,000/night), Mini Bar (per consumption), Laundry</li>
+      <li>Payment methods enabled: Cash, Card, UPI, Bank Transfer</li>
+      <li>Booking sources added: Walk-in, Booking.com, MakeMyTrip, Corporate ABC Ltd</li>
+      <li>Restaurant outlet set up: The Grand Dining — Food and Beverage categories</li>
+      <li>GST configured: 12% for Standard/Deluxe rooms, 18% for Suites, 5% for restaurant</li>
+    </ul>
+    <p style="margin-top:.5rem">The hotel is now live on KeyNova. Guests are being checked in. Transactions are flowing in.</p>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="story-card">
+    <div class="s-phase">Phase 2</div>
+    <div class="s-title">🧮 Mr. Ramesh (accountant) sets up Tally</div>
+    <p>Before touching KTI, Mr. Ramesh does his preparation work in TallyPrime on the hotel's PC:</p>
+    <ul>
+      <li>Creates company: "Hotel Grand Palace Pvt. Ltd" (2024-25 financial year)</li>
+      <li>Creates income ledgers: Room Rent Standard, Room Rent Deluxe, Room Rent Suite</li>
+      <li>Creates extra charge ledgers: Extra Bed Charge, Mini Bar Revenue, Laundry Revenue</li>
+      <li>Creates GST ledgers: CGST Output @6%, SGST Output @6%, CGST Output @9%, SGST Output @9%</li>
+      <li>Creates payment ledgers: Cash, Credit Card Receipts, UPI Receipts, Bank Transfer</li>
+      <li>Creates city ledger accounts (Sundry Debtors): Booking.com, MakeMyTrip, ABC Corporate</li>
+      <li>Creates advance ledger: Advance from Guests</li>
+      <li>Creates custom voucher types: FD Sales 24-25, FD Receipt 24-25, FD Journal 24-25</li>
+    </ul>
+    <p style="margin-top:.5rem">All ledgers exist in Tally. Ready to connect.</p>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="story-card">
+    <div class="s-phase">Phase 3</div>
+    <div class="s-title">⚙️ KTI one-time setup — 45 minutes</div>
+    <p>Mr. Ramesh opens <code>tally.keynova.com</code>, logs in with his KeyNova credentials, and does the one-time setup:</p>
+    <ul>
+      <li><strong>Step 1 — Connect Tally:</strong> Enters company name "Hotel Grand Palace Pvt. Ltd", server: localhost, port: 9000</li>
+      <li><strong>Step 2 — Install KTC:</strong> Downloads and installs the connector on the Tally PC. KTI shows green "Connector Online" badge.</li>
+      <li><strong>Step 3 — General settings:</strong> Chooses Day-wise recording, Place of Supply: Gujarat</li>
+      <li><strong>Step 4 — Voucher types:</strong> Maps Sales → "FD Sales 24-25", Receipts → "FD Receipt 24-25", Journal → "FD Journal 24-25"</li>
+      <li><strong>Step 5 — Ledger mapping:</strong> KTI auto-loads all entities from KeyNova. Mr. Ramesh fills in the Tally ledger names for each one (shown in the mapping table above)</li>
+    </ul>
+    <p style="margin-top:.5rem">Setup complete. KTI is ready to post transactions.</p>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="story-card">
+    <div class="s-phase">Phase 4</div>
+    <div class="s-title">🛎️ The first guest — Yogasen Naidoo stays 3 nights</div>
+    <p>Yogasen Naidoo books via Booking.com for 3 nights (1–3 April) in a Deluxe room at ₹2,500/night. He pays ₹1,000 advance before arrival, ₹2,000 cash on night 1, ₹3,000 by card on checkout. Booking.com owes the hotel the remaining ₹3,000. A discount of ₹1,500 was given.</p>
+    <p style="margin-top:.4rem">All of this is recorded in KeyNova PMS by the front desk. Now it needs to go to Tally.</p>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="story-card">
+    <div class="s-phase">Phase 5</div>
+    <div class="s-title">📊 4th April — Mr. Ramesh exports to Tally</div>
+    <p>Mr. Ramesh opens KTI the next morning. He goes through each transaction type and exports them all:</p>
+    <ul>
+      <li><strong>Sales tab:</strong> Fetches 1–3 April. Sees 3 rows — one for each night's room charge. Clicks Export. All three post successfully as "FD Sales 24-25" vouchers in Tally.</li>
+      <li><strong>Receipts tab — Advance Deposit:</strong> Fetches 31 March. Sees the ₹1,000 advance. Exports it. Tally records: Bank Transfer received → Advance from Guests.</li>
+      <li><strong>Receipts tab — Received From Guest:</strong> Fetches 1–3 April. Sees ₹2,000 cash and ₹3,000 card. Exports both. Tally records them as receipt entries.</li>
+      <li><strong>Journal tab:</strong> Fetches 1 April. Sees the advance transfer entry (advance applied on checkin). Exports it.</li>
+      <li><strong>Receipts tab — City Ledger:</strong> Booking.com's ₹3,000 settlement will appear here when Booking.com actually pays — exported then.</li>
+    </ul>
+    <p style="margin-top:.5rem">All rows show <span class="badge b-green">Posted Successfully</span>. Mr. Ramesh opens TallyPrime, checks the FD Sales 24-25 voucher register — all three nights of Yogasen Naidoo's stay appear correctly with the right ledger entries and GST breakdown.</p>
+    <p style="margin-top:.4rem"><strong>Total time: under 5 minutes. Zero manual data entry. Zero errors.</strong></p>
+  </div>
+
+  <div class="callout co-green">
+    <strong>What appears in TallyPrime's voucher register:</strong> The accountant can open TallyPrime → Display → Account Books → Sales Register → select "FD Sales 24-25" and see all room sale vouchers posted from KTI, with correct dates, guest names in narration, GST split into the right ledgers, and balanced debit/credit entries. The P&L and GST reports update automatically.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SUMMARY TABLE
+════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:#DCFCE7">✅</div>
+    <div>
+      <div class="section-title">Summary — The Full Picture</div>
+      <div class="section-sub">Everything in one view</div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Answer</th></tr></thead>
+      <tbody>
+        <tr><td>What are we building?</td><td>A separate web app (KTI) that connects KeyNova PMS to TallyPrime. Plus a tiny local connector (KTC) for the hotel's PC.</td></tr>
+        <tr><td>Is it automatic or manual?</td><td>Manual. The accountant decides when to export and presses the button. No background automation.</td></tr>
+        <tr><td>Who installs what?</td><td>Hotel IT installs the KTC connector on the Tally PC. Accountant does all KTI configuration. KeyNova team builds and hosts KTI.</td></tr>
+        <tr><td>How does KTI get data from PMS?</td><td>Via authenticated REST API calls. Same login credentials as KeyNova PMS. KTI calls KeyNova's backend to fetch transaction lists.</td></tr>
+        <tr><td>How does ledger mapping work?</td><td>KTI auto-fetches all property entities from KeyNova (payment methods, taxes, extra charges etc.). Accountant fills in the matching Tally ledger name for each. Saved once.</td></tr>
+        <tr><td>How does data reach Tally?</td><td>Browser JS builds XML → sends to KTC at localhost:9988 → KTC forwards to Tally at localhost:9000 → Tally creates voucher → response returns to browser.</td></tr>
+        <tr><td>What if Tally is on a cloud VM or public IP?</td><td>No KTC needed. KTI server directly posts XML to the Tally URL. Configure the public IP in KTI's connection settings.</td></tr>
+        <tr><td>What does the accountant see?</td><td>A transaction table with per-row status: Posted Successfully or specific error message (e.g., "Ledger not found").</td></tr>
+        <tr><td>What if a transaction fails?</td><td>The row shows an error. Accountant fixes the issue (usually a ledger name typo) and re-exports that row. Already-posted rows are not re-sent.</td></tr>
+        <tr><td>How long does setup take?</td><td>30–60 minutes for a new property. After that, daily export takes 2–5 minutes.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<div class="footer">
+  <strong>KeyNova PMS & POS</strong> × <strong>Tally Integration</strong><br>
+  This document is for internal use and stakeholder communication.
+</div>
+
+</body>
+</html>

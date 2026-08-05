@@ -1,0 +1,204 @@
+{
+  "info": {
+    "name": "KeyNova x Tally POC - Backend",
+    "description": "FastAPI backend for the KeyNova x Tally integration POC.\n\nHow to use:\n1. Start the backend:  uvicorn main:app --reload --port 8000\n2. Run 'Auth - Login' FIRST. It auto-saves the token to the collection variable {{token}}.\n3. Every other request uses {{token}} automatically via Bearer auth.\n\nRestarting the server clears the in-memory session, so re-run Login after a restart.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Liveness check. No auth required. Returns {\"status\":\"ok\"}."
+      }
+    },
+    {
+      "name": "1. Auth - Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Auto-save the token so all other requests can use {{token}}.",
+              "if (pm.response.code === 200) {",
+              "    const json = pm.response.json();",
+              "    if (json.token) {",
+              "        pm.collectionVariables.set('token', json.token);",
+              "        console.log('Saved token to {{token}}:', json.token);",
+              "    }",
+              "    pm.test('login returns a token', function () {",
+              "        pm.expect(json.token).to.be.a('string').and.not.empty;",
+              "    });",
+              "} else {",
+              "    pm.test('login failed', function () {",
+              "        pm.expect.fail('Expected 200, got ' + pm.response.code);",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hotel_code\": \"KN001\",\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Validates credentials against the dummy hotels and returns a token.\nValid logins: KN001 or KN002, both admin / admin123.\nThe test script auto-saves the token to the {{token}} collection variable."
+      }
+    },
+    {
+      "name": "2. Get Config",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/config",
+          "host": ["{{base_url}}"],
+          "path": ["config"]
+        },
+        "description": "Returns the saved Tally connection config for this session, or defaults if not set."
+      }
+    },
+    {
+      "name": "3. Save Config",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tally_mode\": \"LOCAL_CONNECTOR\",\n  \"tally_company_name\": \"Hotel Grand Palace Pvt. Ltd\",\n  \"connector_port\": 9988,\n  \"recording_mode\": \"DAY_WISE\",\n  \"place_of_supply\": \"Gujarat\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/config",
+          "host": ["{{base_url}}"],
+          "path": ["config"]
+        },
+        "description": "Saves the Tally connection settings to the session."
+      }
+    },
+    {
+      "name": "4. Get Mapping Entities",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/mappings/entities",
+          "host": ["{{base_url}}"],
+          "path": ["mappings", "entities"]
+        },
+        "description": "Returns the fixed list of 10 KeyNova entities to map to Tally ledger names."
+      }
+    },
+    {
+      "name": "5. Get Mappings",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/mappings",
+          "host": ["{{base_url}}"],
+          "path": ["mappings"]
+        },
+        "description": "Returns the saved entity -> ledger mappings. Empty {} if none saved yet."
+      }
+    },
+    {
+      "name": "6. Save Mappings",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mappings\": {\n    \"ROOM_RENT\": \"Room Revenue\",\n    \"GST_12_CGST\": \"CGST Output @6%\",\n    \"GST_12_SGST\": \"SGST Output @6%\",\n    \"GST_18_CGST\": \"CGST Output @9%\",\n    \"GST_18_SGST\": \"SGST Output @9%\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/mappings",
+          "host": ["{{base_url}}"],
+          "path": ["mappings"]
+        },
+        "description": "Saves the entity -> Tally ledger name mappings."
+      }
+    },
+    {
+      "name": "7. Get Transactions (Sales)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/transactions/sales?from_date=2025-06-03&to_date=2025-06-03",
+          "host": ["{{base_url}}"],
+          "path": ["transactions", "sales"],
+          "query": [
+            { "key": "from_date", "value": "2025-06-03" },
+            { "key": "to_date", "value": "2025-06-03" }
+          ]
+        },
+        "description": "Returns the sales transactions with their current tally_status. from_date/to_date are accepted but ignored in the POC."
+      }
+    },
+    {
+      "name": "8. Update Transaction Status",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"updates\": [\n    {\n      \"transaction_id\": \"T001\",\n      \"status\": \"POSTED\",\n      \"tally_response\": \"<RESPONSE><CREATED>1</CREATED></RESPONSE>\"\n    },\n    {\n      \"transaction_id\": \"T003\",\n      \"status\": \"ERROR\",\n      \"tally_response\": \"<LINEERROR>Ledger not found</LINEERROR>\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/transactions/update-status",
+          "host": ["{{base_url}}"],
+          "path": ["transactions", "update-status"]
+        },
+        "description": "Reports the result of posting each transaction to Tally. Persists POSTED/ERROR/CONNECTOR_OFFLINE per transaction in the session."
+      }
+    },
+    {
+      "name": "9. Get Transactions (verify status)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/transactions/sales",
+          "host": ["{{base_url}}"],
+          "path": ["transactions", "sales"]
+        },
+        "description": "Fetch again to confirm the statuses from step 8 are reflected (T001 -> POSTED, T003 -> ERROR)."
+      }
+    }
+  ]
+}

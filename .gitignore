@@ -1,0 +1,4 @@
+.venv
+.env
+.gitattributes
+node_modules
